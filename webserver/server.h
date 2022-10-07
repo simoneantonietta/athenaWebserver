@@ -152,6 +152,7 @@ int parseForm(char* form, formValues * result)
 																		result->ip.addr1,result->ip.addr2,result->ip.addr3,result->ip.addr4,
 																		result->sn.addr1,result->sn.addr2,result->sn.addr3,result->sn.addr4,
 																		result->gw.addr1,result->gw.addr2,result->gw.addr3,result->gw.addr4);
+	printf(logString);
 
 	free(values);
 
@@ -162,19 +163,21 @@ void changeIP(formValues * networkParam)
 {
 	//FILE * fd = fopen("/etc/network/network.conf","r");
 	FILE * fd = fopen("/home/utente/network.conf","r");
-	char ip[16], sn[16], gw[16], networkFile[20][50];
+	char ip[16], sn[16], gw[16], dhcp[2][17], networkFile[20][50];
 	int index = 0, i;
 
-	sprintf(ip,"\"%d.%d.%d.%d\"",networkParam->ip.addr1, networkParam->ip.addr2, networkParam->ip.addr3, networkParam->ip.addr4);
-	sprintf(sn,"\"%d.%d.%d.%d\"",networkParam->sn.addr1, networkParam->sn.addr2, networkParam->sn.addr3, networkParam->sn.addr4);
-	sprintf(gw,"\"%d.%d.%d.%d\"",networkParam->gw.addr1, networkParam->gw.addr2, networkParam->gw.addr3, networkParam->gw.addr4);
+	sprintf(ip,"\"%d.%d.%d.%d\"\0",networkParam->ip.addr1, networkParam->ip.addr2, networkParam->ip.addr3, networkParam->ip.addr4);
+	sprintf(sn,"\"%d.%d.%d.%d\"\0",networkParam->sn.addr1, networkParam->sn.addr2, networkParam->sn.addr3, networkParam->sn.addr4);
+	sprintf(gw,"\"%d.%d.%d.%d\"\0",networkParam->gw.addr1, networkParam->gw.addr2, networkParam->gw.addr3, networkParam->gw.addr4);
+	sprintf(dhcp[0],"BOOTPROTO=\"none\"\0");
+	sprintf(dhcp[1],"BOOTPROTO=\"dhcp\"\0");
 
 	while(fgets(networkFile[index++],50,fd))
 	{
 		Log("/tmp/webserver.log",networkFile[index-1]);
 		if(strncmp(networkFile[index-1],DHCP_OPTIONS,strlen(DHCP_OPTIONS))==0)
-		{
-			
+		{			
+			strncpy(strchr(networkFile[index-1], '"'),dhcp[networkParam->dhcp],strlen(dhcp[networkParam->dhcp]));
 		}
 		else if(strncmp(networkFile[index-1],IP_STRING,strlen(IP_STRING))==0)
 		{
