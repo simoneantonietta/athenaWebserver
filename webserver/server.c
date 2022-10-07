@@ -45,9 +45,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    //sprintf(response,"%s\n%s\n%s\n",header,content_type,(char *)body);
-
-    printf("Content lenght:%d\n",content_length);    
+    //printf("Content lenght:%d\n",content_length);    
     int index, i;
     for(i=0, index=0;i<strlen(header);i++,index++)
         response[index] = header[i];
@@ -61,9 +59,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     response[index++] = '\n';
     response[index++] = '\0';
 
-    printf("Response:\n%s\nTotal lenght:%d\n",response,index);
-
-	//int response_length = strlen(response);
+    //printf("Response:\n%s\nTotal lenght:%d\n",response,index);
+	
     int response_length = index;
 
     // Send it all!
@@ -193,7 +190,7 @@ void handle_http_request(int fd, struct cache *cache)
 
             mime_type = mime_type_get(filepath);
 
-            printf("\nMime type:%s\n",mime_type);
+            printf("Mime type:%s\n\n",mime_type);
 
             send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
             file_free(filedata);

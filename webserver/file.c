@@ -33,7 +33,7 @@ struct file_data *file_load(char *filename)
 
     // Allocate that many bytes
     bytes_remaining = buf.st_size;
-printf("Devo leggere %d bytes\n------\n",bytes_remaining);    
+    //printf("Devo leggere %d bytes\n------\n",bytes_remaining);    
     p = buffer = malloc(bytes_remaining);
 
     if (buffer == NULL) {
@@ -41,20 +41,7 @@ printf("Devo leggere %d bytes\n------\n",bytes_remaining);
     }
 
     // Read in the entire file
-#if 0
-    while (bytes_read = fread(p, 1, bytes_remaining, fp), bytes_read != 0 && bytes_remaining > 0) {
-        if (bytes_read == -1) {
-            free(buffer);
-            return NULL;
-        }
 
-printf("Sto legendo:%s\n------\n",p);
-
-        bytes_remaining -= bytes_read;
-        p += bytes_read;
-        total_bytes += bytes_read;        
-    }
-#else
     bytes_read = 0; 
     int tmpByte=fgetc(fp);
     while((tmpByte!=EOF) && (bytes_read<bytes_remaining))
@@ -63,8 +50,7 @@ printf("Sto legendo:%s\n------\n",p);
         tmpByte=fgetc(fp);
     }
     p[bytes_read] = '\0';
-    printf("Ho letto:\n%s\n------\n",p);
-#endif
+    //printf("Ho letto:\n%s\n------\n",p);
 
     // Allocate the file data struct
     struct file_data *filedata = malloc(sizeof *filedata);
