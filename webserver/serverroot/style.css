@@ -1,0 +1,28 @@
+body {
+  background-color: lightblue;
+}
+
+h1 {
+  color: navy;
+  margin-left: 20px;
+}
+
+
+#index-menu {
+  height: 84px;
+  background-color: cornflowerblue;
+}
+
+.table {
+  display: table;   /* Allow the centering to work */
+  margin: 0 auto;
+}
+
+ul#horizontal-list {
+  min-width: 696px;
+  list-style: none;
+  padding-top: 20px;
+  }
+  ul#horizontal-list li {
+    display: inline;
+  }
