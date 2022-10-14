@@ -12,7 +12,7 @@ struct file_data *file_load(char *filename)
 {
     char *buffer, *p;
     struct stat buf;
-    int bytes_read, bytes_remaining, total_bytes = 0;
+    int bytes_read, bytes_remaining;
 
     // Get the file size
     if (stat(filename, &buf) == -1) {
@@ -60,7 +60,6 @@ struct file_data *file_load(char *filename)
     }
 
     filedata->data = buffer;
-    //filedata->size = total_bytes;
     filedata->size = bytes_read;
 
     return filedata;

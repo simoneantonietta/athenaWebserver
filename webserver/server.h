@@ -53,7 +53,6 @@ void Log(char *filename, char *content)
 int parseForm(char* form, formValues * result)
 {
 	unsigned int qty = 0, i, nParam=0;
-	const char delimiter[2] = "&";
 	
 	for(i=0; i<strlen(form);i++)
 	{
@@ -67,7 +66,8 @@ int parseForm(char* form, formValues * result)
 
 	char *values = malloc(nParam*256*sizeof(char));
 	
-	char *strValue, tmpValue[10], valueLen;
+	char *strValue, tmpValue[10];
+	unsigned char valueLen;
 	
 	strValue = strstr(form,"ip1=");
 	for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
@@ -161,55 +161,67 @@ int parseForm(char* form, formValues * result)
 
 void changeIP(formValues * networkParam)
 {
-	//FILE * fd = fopen("/etc/network/network.conf","r");
-	FILE * fd = fopen("/home/utente/network.conf","r");
-	char ip[16], sn[16], gw[16], dhcp[2][17], networkFile[20][50];
+	FILE * fd = fopen("/etc/network/network.conf","r");
+	//FILE * fd = fopen("/home/utente/network.conf","r");
+	char ip[18], sn[18], gw[18], dhcp[2][17], networkFile[30][100];
 	int index = 0, i;
 
-	sprintf(ip,"\"%d.%d.%d.%d\"\0",networkParam->ip.addr1, networkParam->ip.addr2, networkParam->ip.addr3, networkParam->ip.addr4);
-	sprintf(sn,"\"%d.%d.%d.%d\"\0",networkParam->sn.addr1, networkParam->sn.addr2, networkParam->sn.addr3, networkParam->sn.addr4);
-	sprintf(gw,"\"%d.%d.%d.%d\"\0",networkParam->gw.addr1, networkParam->gw.addr2, networkParam->gw.addr3, networkParam->gw.addr4);
-	sprintf(dhcp[0],"BOOTPROTO=\"none\"\0");
-	sprintf(dhcp[1],"BOOTPROTO=\"dhcp\"\0");
-
-	while(fgets(networkFile[index++],50,fd))
+	if(fd != NULL)
 	{
-		Log("/tmp/webserver.log",networkFile[index-1]);
-		if(strncmp(networkFile[index-1],DHCP_OPTIONS,strlen(DHCP_OPTIONS))==0)
-		{			
-			strncpy(strchr(networkFile[index-1], '"'),dhcp[networkParam->dhcp],strlen(dhcp[networkParam->dhcp]));
-		}
-		else if(strncmp(networkFile[index-1],IP_STRING,strlen(IP_STRING))==0)
-		{
-			strncpy(strchr(networkFile[index-1], '"'),ip,strlen(ip));
-		}
-		else if(strncmp(networkFile[index-1],SUBNET_STRING,strlen(SUBNET_STRING))==0)
-		{
-			strncpy(strchr(networkFile[index-1], '"'),sn,strlen(sn));
-		}
-		else if(strncmp(networkFile[index-1],BROADCAST_STRING,strlen(BROADCAST_STRING))==0)
-		{
-			
-		}
-		else if(strncmp(networkFile[index-1],NETWORK_STRING,strlen(NETWORK_STRING))==0)
-		{
+		
+		sprintf(ip,"\"%d.%d.%d.%d\"",networkParam->ip.addr1, networkParam->ip.addr2, networkParam->ip.addr3, networkParam->ip.addr4);
+		sprintf(sn,"\"%d.%d.%d.%d\"",networkParam->sn.addr1, networkParam->sn.addr2, networkParam->sn.addr3, networkParam->sn.addr4);
+		sprintf(gw,"\"%d.%d.%d.%d\"",networkParam->gw.addr1, networkParam->gw.addr2, networkParam->gw.addr3, networkParam->gw.addr4);		
+		sprintf(dhcp[0],"BOOTPROTO=\"none\"");
+		sprintf(dhcp[1],"BOOTPROTO=\"dhcp\"");
 
-		}
-		else if(strncmp(networkFile[index-1],GATEWAY_STRING,strlen(GATEWAY_STRING))==0)
+		while(fgets(networkFile[index++],100,fd))
 		{
-			strncpy(strchr(networkFile[index-1], '"'),gw,strlen(gw));
+			Log("/tmp/webserver.log",networkFile[index-1]);
+			if(strncmp(networkFile[index-1],DHCP_OPTIONS,strlen(DHCP_OPTIONS))==0)
+			{			
+				sprintf(networkFile[index-1],"%s\n",dhcp[networkParam->dhcp]);			
+			}
+			else if(strncmp(networkFile[index-1],IP_STRING,strlen(IP_STRING))==0)
+			{
+				sprintf(strchr(networkFile[index-1], '"'),"%s\n",ip);			
+			}
+			else if(strncmp(networkFile[index-1],SUBNET_STRING,strlen(SUBNET_STRING))==0)
+			{
+				sprintf(strchr(networkFile[index-1], '"'),"%s\n",sn);			
+			}
+			else if(strncmp(networkFile[index-1],BROADCAST_STRING,strlen(BROADCAST_STRING))==0)
+			{
+				
+			}
+			else if(strncmp(networkFile[index-1],NETWORK_STRING,strlen(NETWORK_STRING))==0)
+			{
+
+			}
+			else if(strncmp(networkFile[index-1],GATEWAY_STRING,strlen(GATEWAY_STRING))==0)
+			{
+				sprintf(strchr(networkFile[index-1], '"'),"%s\n",gw);			
+			}
 		}
+
+		fclose(fd);
+
+		//fd = fopen("/home/utente/network.conf","w");	
+		fd = fopen("/etc/network/network.conf","w");	
+		if(fd != NULL)
+		{
+			for(i=0;i<index;i++)
+				fwrite(networkFile[i],1,strlen(networkFile[i]),fd);
+
+			fclose(fd);	
+			system("reboot");
+		}
+		else
+			printf("Errore apertura file network.conf in scrittura\n");
 	}
+	else
+		printf("Errore apertura file network.conf in lettura\n");
 
-	fclose(fd);
-
-
-	fd = fopen("/home/utente/network.conf","w");	
-
-	for(i=0;i<index;i++)
-		fwrite(networkFile[i],1,strlen(networkFile[i]),fd);
-
-	fclose(fd);
 }
 
 /* */

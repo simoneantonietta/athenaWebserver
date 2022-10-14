@@ -46,7 +46,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // Build HTTP response and store it in response
 
     //printf("Content lenght:%d\n",content_length);    
-    int index, i;
+    unsigned int index, i;
     for(i=0, index=0;i<strlen(header);i++,index++)
         response[index] = header[i];
     response[index++] = '\n';
