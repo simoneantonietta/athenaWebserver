@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css">
+    <title>Saet I.S. || Athena</title>    
+  </head>
+  <body>
+    <h1>
+      <div class="row">
+        <div class="column">
+          SAET I.S. - Centrale Athena : parametri di supervisione
+        </div>
+        <div class="column">
+          <a href="index.html">
+            <img src="favicon.ico" alt="descriptive text" style="float: right; margin-right: 15px;">
+          </a>
+        </div>
+      </div>    
+    </h1>
+    <div id="index-menu">
+        <div class="table">
+          <ul id="horizontal-list">
+            <li><button onclick="window.location.href='parametri_di_sistema.html';">Parametri di Sistema</button></li>            
+            <li><button onclick="window.location.href='parametri_di_centrale.html';">Parametri di Centrale</button></li>            
+            <li><button onclick="window.location.href='parametri_di_supervisione.html';">Parametri di Supervisione</button></li>            
+          </ul>
+        </div>
+    </div>
+    <br><br>
+    <form action="/successChange.html" method="get">
+        <label for="ipSupervisor">Indirizzo IP Supervisore:</label>
+        <input type="text" class="form-input" id="ipSupervisor1" name="ipSupervisor1" placeholder="xxx">.
+        <input type="text" class="form-input" id="ipSupervisor2" name="ipSupervisor2" placeholder="xxx">.
+        <input type="text" class="form-input" id="ipSupervisor3" name="ipSupervisor3" placeholder="xxx">.
+        <input type="text" class="form-input" id="ipSupervisor4" name="ipSupervisor4" placeholder="xxx"><br><br>
+        <label for="svPort">Porte Supervisore</label>
+        <input type="text" class="form-input" id="svPort" name="svPort">
+        <label for="phoneBook">Rubrica Telefonica:</label>
+        <input type="text" class="form-input" id="phoneBook" name="phoneBook"><br><br>
+        <label for="eventConfig">Configurazione eventi:</label>
+        <input type="text" class="form-input" id="eventConfig" name="eventConfig"><br><br>
+        <button type="submit" formmethod="post">Invia</button>
+    </form>  
+  </body>
+</html>

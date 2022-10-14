@@ -9,7 +9,7 @@
     <h1>
       <div class="row">
         <div class="column">
-          SAET I.S. - Centrale Athena : configurazione di rete
+          SAET I.S. - Centrale Athena : parametri di sistema
         </div>
         <div class="column">
           <a href="index.html">
@@ -21,26 +21,23 @@
     <div id="index-menu">
         <div class="table">
           <ul id="horizontal-list">
-            <li><button onclick="window.location.href='pagina1.html';">Configurazione di rete</button></li>            
-            <li><button onclick="window.location.href='pagina2.html';">Link 2</button></li>            
-            <li><button onclick="window.location.href='pagina3.html';">Link 3</button></li>            
-            <li><button onclick="window.location.href='pagina4.html';">Link 4</button></li>            
-            <li><button onclick="window.location.href='pagina5.html';">Link 5</button></li>            
-            <li><button onclick="window.location.href='pagina6.html';">Link 6</button></li>            
-            <li><button onclick="window.location.href='pagina7.html';">Link 7</button></li>            
+            <li><button onclick="window.location.href='parametri_di_sistema.html';">Parametri di Sistema</button></li>            
+            <li><button onclick="window.location.href='parametri_di_centrale.html';">Parametri di Centrale</button></li>            
+            <li><button onclick="window.location.href='parametri_di_supervisione.html';">Parametri di Supervisione</button></li>            
           </ul>
         </div>
     </div>
+    <br><br>
     <form action="/successChange.html" method="get">
         <label for="dhcp">DHCP</label>
         <input type="hidden" class="form-input" id="dhcp" name="dhcp" value="off">
         <input type="checkbox" class="form-input" id="dhcp" name="dhcp"><br><br>
-        <label for="ip">IP address:</label>
+        <label for="ip">Indirizzo IP:</label>
         <input type="text" class="form-input" id="ip1" name="ip1" placeholder="xxx">.
         <input type="text" class="form-input" id="ip2" name="ip2" placeholder="xxx">.
         <input type="text" class="form-input" id="ip3" name="ip3" placeholder="xxx">.
         <input type="text" class="form-input" id="ip4" name="ip4" placeholder="xxx"><br><br>
-        <label for="sn">Subnet:</label>
+        <label for="sn">Subnet Mask:</label>
         <input type="text" class="form-input" id="sn1" name="sn1" placeholder="xxx">.
         <input type="text" class="form-input" id="sn2" name="sn2" placeholder="xxx">.
         <input type="text" class="form-input" id="sn3" name="sn3" placeholder="xxx">.
@@ -50,7 +47,9 @@
         <input type="text" class="form-input" id="gw2" name="gw2" placeholder="xxx">.
         <input type="text" class="form-input" id="gw3" name="gw3" placeholder="xxx">.
         <input type="text" class="form-input" id="gw4" name="gw4" placeholder="xxx"><br><br>
+        <label for="apn">APN SIM:</label>
+        <input type="text" class="form-input" id="apn" name="apn"><br><br>
         <button type="submit" formmethod="post">Invia</button>
-    </form>    
+    </form>  
   </body>
 </html>
