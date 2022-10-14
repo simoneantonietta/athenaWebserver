@@ -29,14 +29,28 @@
     </div>
     <br><br>
     <form action="/successChange.html" method="get">
-        <label for="centralType">Tipo Centrale</label>
-        <input type="text" class="form-input" id="centralType" name="centralType">
-        <label for="centralProtocol">Protocollo:</label>
-        <input type="text" class="form-input" id="centralProtocol" name="centralProtocol"><br><br>
-        <label for="inputConfig">Configurazione Ingressi:</label>
-        <input type="text" class="form-input" id="inputConfig" name="inputConfig"><br><br>
-        <label for="outputConfig">Configurazione Uscite:</label>
-        <input type="text" class="form-input" id="outputConfig" name="outputConfig"><br><br>
+        <label for="centralType">Marca Centrale</label>
+        <select name="centralTypes" id="centralTypes">
+          <option value="notifier">Notifier</option>
+          <option value="tecnofire">Tecnofire</option>
+          <option value="honeywell">Honeywell</option>
+          <option value="def">DEF</option>
+          <option value="detfire">DETFIRE</option>
+        </select>
+        <label for="centralModel">Modello Centrale</label>
+        <select name="centralModel" id="centralModel">
+          <option value="notifier">Notifier</option>
+          <option value="tecnofire">Tecnofire</option>
+          <option value="honeywell">Honeywell</option>
+          <option value="def">DEF</option>
+          <option value="detfire">DETFIRE</option>
+        </select><br><br>
+        <label for="connection">Tipo di Connessione</label>
+        <select name="connection" id="connection">
+          <option value="com">COM</option>
+          <option value="usb">USB</option>
+          <option value="lan">LAN</option>
+        </select><br><br>            
         <button type="submit" formmethod="post">Invia</button>
     </form>  
   </body>
