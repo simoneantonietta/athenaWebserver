@@ -163,7 +163,7 @@ void changeIP(formValues * networkParam)
 {
 	FILE * fd = fopen("/etc/network/network.conf","r");
 	//FILE * fd = fopen("/home/utente/network.conf","r");
-	char ip[18], sn[18], gw[18], dhcp[2][17], networkFile[30][100];
+	char ip[18], sn[18], gw[18], broadcast[18], network[18], dhcp[2][17], networkFile[30][100];
 	int index = 0, i;
 
 	if(fd != NULL)
@@ -172,6 +172,16 @@ void changeIP(formValues * networkParam)
 		sprintf(ip,"\"%d.%d.%d.%d\"",networkParam->ip.addr1, networkParam->ip.addr2, networkParam->ip.addr3, networkParam->ip.addr4);
 		sprintf(sn,"\"%d.%d.%d.%d\"",networkParam->sn.addr1, networkParam->sn.addr2, networkParam->sn.addr3, networkParam->sn.addr4);
 		sprintf(gw,"\"%d.%d.%d.%d\"",networkParam->gw.addr1, networkParam->gw.addr2, networkParam->gw.addr3, networkParam->gw.addr4);		
+		sprintf(broadcast,"\"%d.%d.%d.%d\"",
+							(networkParam->sn.addr1 & networkParam->ip.addr1), 
+							(networkParam->sn.addr2 & networkParam->ip.addr2), 
+							(networkParam->sn.addr3 & networkParam->ip.addr3), 
+							(networkParam->sn.addr4 & networkParam->ip.addr4) | (0xFF ^ networkParam->sn.addr4));		
+		sprintf(network,"\"%d.%d.%d.%d\"",
+							(networkParam->sn.addr1 & networkParam->ip.addr1), 
+							(networkParam->sn.addr2 & networkParam->ip.addr2), 
+							(networkParam->sn.addr3 & networkParam->ip.addr3), 
+							(networkParam->sn.addr4 & networkParam->ip.addr4));		
 		sprintf(dhcp[0],"BOOTPROTO=\"none\"");
 		sprintf(dhcp[1],"BOOTPROTO=\"dhcp\"");
 
@@ -192,11 +202,11 @@ void changeIP(formValues * networkParam)
 			}
 			else if(strncmp(networkFile[index-1],BROADCAST_STRING,strlen(BROADCAST_STRING))==0)
 			{
-				
+				sprintf(strchr(networkFile[index-1], '"'),"%s\n", broadcast);				
 			}
 			else if(strncmp(networkFile[index-1],NETWORK_STRING,strlen(NETWORK_STRING))==0)
 			{
-
+				sprintf(strchr(networkFile[index-1], '"'),"%s\n", network);				
 			}
 			else if(strncmp(networkFile[index-1],GATEWAY_STRING,strlen(GATEWAY_STRING))==0)
 			{
