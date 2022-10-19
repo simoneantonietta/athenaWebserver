@@ -18,6 +18,21 @@ h1 {
   margin: 0 auto;
 }
 
+table.ip {
+  display: table;   /* Allow the centering to work */
+  table-layout: auto;
+  width: 50%;  
+  text-align: left;
+}
+
+.first-col {
+  width: 175px;
+  min-width: 175px;
+  max-width: 175px;
+  left: 0px;
+  vertical-align: top;
+}
+
 ul#horizontal-list {
   min-width: 696px;
   list-style: none;
@@ -37,4 +52,44 @@ ul#horizontal-list {
   content: "";
   display: table;
   clear: both;
+}
+
+select {
+  width: 30%;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1;
+}
+
+input {
+  width: 10%;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1;
+}
+
+input.second-col {
+  width: 100%;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1;
+}
+
+button{
+  width: 30%;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1; 
+}
+
+button.submit{
+  width: 10%;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1; 
 }

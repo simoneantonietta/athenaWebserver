@@ -28,18 +28,57 @@
     </div>
     <br><br>
     <form action="/successChange.html" method="get">
-        <label for="ipSupervisor">Indirizzo IP Supervisore:</label>
-        <input type="text" class="form-input" id="ipSupervisor1" name="ipSupervisor1" placeholder="xxx">.
-        <input type="text" class="form-input" id="ipSupervisor2" name="ipSupervisor2" placeholder="xxx">.
-        <input type="text" class="form-input" id="ipSupervisor3" name="ipSupervisor3" placeholder="xxx">.
-        <input type="text" class="form-input" id="ipSupervisor4" name="ipSupervisor4" placeholder="xxx"><br><br>
-        <label for="svPort">Porte Supervisore</label>
-        <input type="text" class="form-input" id="svPort" name="svPort">
-        <label for="phoneBook">Rubrica Telefonica:</label>
-        <input type="text" class="form-input" id="phoneBook" name="phoneBook"><br><br>
-        <label for="eventConfig">Configurazione eventi:</label>
-        <input type="text" class="form-input" id="eventConfig" name="eventConfig"><br><br>
-        <button type="submit" formmethod="post">Invia</button>
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="ipSupervisor">Indirizzo IP Supervisore:</label>
+            </th>
+            <th class="second-col">
+              <input type="number" min="0" max="255" class="form-input" id="ipSupervisor1" name="ipSupervisor1" placeholder="xxx">.
+              <input type="number" min="0" max="255" class="form-input" id="ipSupervisor2" name="ipSupervisor2" placeholder="xxx">.
+              <input type="number" min="0" max="255" class="form-input" id="ipSupervisor3" name="ipSupervisor3" placeholder="xxx">.
+              <input type="number" min="0" max="255" class="form-input" id="ipSupervisor4" name="ipSupervisor4" placeholder="xxx">
+            </th>
+          </tr>  
+        </table><br><br>
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="svPort">Porta Supervisore</label>        
+            </th>
+            <th class="second-col">
+              <input type="text" class="form-input" id="svPort" name="svPort">
+            </th>
+          </tr>  
+        </table><br><br>
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="phoneBook">Rubrica Telefonica:</label>
+            </th>
+            <th class="second-col">
+              <input type="text" class="form-input" id="cell1" name="cell1"><br><br>
+              <input type="text" class="form-input" id="cell2" name="cell2"><br><br>
+              <input type="text" class="form-input" id="cell3" name="cell3"><br><br>
+              <input type="text" class="form-input" id="cell4" name="cell4"><br><br>
+              <input type="text" class="form-input" id="cell5" name="cell5"><br><br>
+              <input type="text" class="form-input" id="cell6" name="cell6"><br><br>
+              <input type="text" class="form-input" id="cell7" name="cell7"><br><br>
+              <input type="text" class="form-input" id="cell8" name="cell8"><br><br>
+            </th>
+          </tr>  
+        </table><br><br>
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="eventConfig">Configurazione eventi:</label>
+            </th>
+            <th class="second-col">
+              <input type="text" class="form-input" id="eventConfig" name="eventConfig"><br><br>
+            </th>
+          </tr>  
+        </table><br><br>                
+        <button class="submit" type="submit" formmethod="post">Invia</button>
     </form>  
   </body>
 </html>

@@ -29,29 +29,53 @@
     </div>
     <br><br>
     <form action="/successChange.html" method="get">
-        <label for="centralType">Marca Centrale</label>
-        <select name="centralTypes" id="centralTypes">
-          <option value="notifier">Notifier</option>
-          <option value="tecnofire">Tecnofire</option>
-          <option value="honeywell">Honeywell</option>
-          <option value="def">DEF</option>
-          <option value="detfire">DETFIRE</option>
-        </select>
-        <label for="centralModel">Modello Centrale</label>
-        <select name="centralModel" id="centralModel">
-          <option value="notifier">Notifier</option>
-          <option value="tecnofire">Tecnofire</option>
-          <option value="honeywell">Honeywell</option>
-          <option value="def">DEF</option>
-          <option value="detfire">DETFIRE</option>
-        </select><br><br>
-        <label for="connection">Tipo di Connessione</label>
-        <select name="connection" id="connection">
-          <option value="com">COM</option>
-          <option value="usb">USB</option>
-          <option value="lan">LAN</option>
-        </select><br><br>            
-        <button type="submit" formmethod="post">Invia</button>
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="centralType">Marca Centrale</label>
+            </th>
+            <th class="second-col">
+              <select name="centralTypes" id="centralTypes">
+                <option value="notifier">Notifier</option>
+                <option value="tecnofire">Tecnofire</option>
+                <option value="honeywell">Honeywell</option>
+                <option value="def">DEF</option>
+                <option value="detfire">DETFIRE</option>
+              </select>            
+            </th>
+          </tr>  
+        </table><br><br>
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="centralModel">Modello Centrale</label>
+            </th>
+            <th class="second-col">
+              <select name="centralModel" id="centralModel">
+                <option value="notifier">Notifier</option>
+                <option value="tecnofire">Tecnofire</option>
+                <option value="honeywell">Honeywell</option>
+                <option value="def">DEF</option>
+                <option value="detfire">DETFIRE</option>
+              </select>
+            </th>
+          </tr>  
+        </table><br><br>
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="connection">Tipo di Connessione</label>
+            </th>
+            <th class="second-col">
+              <select name="connection" id="connection">
+                <option value="com">COM</option>
+                <option value="usb">USB</option>
+                <option value="lan">LAN</option>
+              </select><br><br>            
+            </th>
+          </tr>  
+        </table><br><br>
+        <button class="submit" type="submit" formmethod="post">Invia</button>
     </form>  
   </body>
 </html>
