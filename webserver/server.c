@@ -28,6 +28,16 @@
 #define SERVER_FILES "/home/utente/serverfiles/"
 #define SERVER_ROOT "/home/utente/serverroot"
 
+#define MAX_HOSTS 10
+
+typedef struct hostProperties{
+    unsigned char hostIP[INET6_ADDRSTRLEN];      // IP address of a host
+    unsigned char authorized;                    // authorization state of a host
+    unsigned char isActive;                      // the host made the last request
+}hostProperties;
+
+/* Variables */
+struct hostProperties hosts[MAX_HOSTS];
 
 /**
  * Send an HTTP response
@@ -152,18 +162,30 @@ void handle_http_request(int fd, struct cache *cache)
 
     char filepath[4096];
     struct file_data *filedata; 
-    char *mime_type;
+    char *mime_type, credentials[256], credentials_b64[256], reference_credential[256], *tmpString;
+    char idx;
+
+    char pwdName[] = "/home/utente/serverroot/pwd";
+    FILE * fDesc;
 
     formValues formVal;
+
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
+    
+    char activeHost=0;
+    while(activeHost<MAX_HOSTS && (!hosts[activeHost].isActive))
+        activeHost++;
+
+    sprintf(logString,"activeHost:%d with isActive:%d\n",activeHost,hosts[activeHost].isActive);
+    Log("/tmp/webserver.log",logString);
 
     if (bytes_recvd < 0) {
         perror("recv");
         return;
     }
-    else
+    else if(hosts[activeHost].isActive)
     {
         //Log("/tmp/webserver.log",request);
         memcpy(request_cpy, request, request_buffer_size);
@@ -176,23 +198,64 @@ void handle_http_request(int fd, struct cache *cache)
         {
             printf("GET detected\n");
             Log("/tmp/webserver.log","GET detected\n");
+
             // Fetch the file requested 
             snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, requestResource);
             filedata = file_load(filepath);
 
             if (filedata == NULL) {
-                // TODO: make this non-fatal
                 fprintf(stderr, "cannot find system %s file\n",requestResource);
-                //exit(3);
                 snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
                 filedata = file_load(filepath);
             }            
 
             mime_type = mime_type_get(filepath);
 
-            printf("Mime type:%s\n\n",mime_type);
+            //printf("Mime type:%s\n\n",mime_type);
 
-            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            if(hosts[activeHost].authorized)
+            {
+                strcpy(logString,"Authorized\n");
+                Log("/tmp/webserver.log",logString);
+                
+                send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            }
+            else
+            {
+                strcpy(logString,"Unathorized\n");
+                Log("/tmp/webserver.log",logString);
+                
+                tmpString = strstr(request_cpy,"Authorization: ");
+
+                if(tmpString)
+                {
+                    for(idx=0;(tmpString[idx+strlen("Authorization: Basic ")]!='\r') && (idx<sizeof(credentials_b64));idx++)
+                    {
+                        credentials_b64[idx]=tmpString[idx+strlen("Authorization: Basic ")];                        
+                    }                
+                    credentials_b64[idx] = '\0';
+
+                    b64_decode(credentials_b64, credentials); 
+
+                    fDesc = fopen(pwdName,"r");
+                    fgets(reference_credential,sizeof(reference_credential),fDesc);
+                    fclose(fDesc);
+
+                    /*sprintf(logString,"reference_credential:%s\n",reference_credential);
+                    Log("/tmp/webserver.log",logString);*/
+                        
+                    if(strncmp(credentials,reference_credential,strlen(reference_credential))==0)
+                    {
+                        hosts[activeHost].authorized = 1;
+                        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+                    }
+                    else
+                        send_response(fd, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, NULL);
+                }
+                else
+                    send_response(fd, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, NULL);
+            }
+            
             file_free(filedata);
         }
         else if(strcmp(requestKind,"POST")==0) 
@@ -251,6 +314,7 @@ int main(void)
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
     char tmpString[200];
+    char i, hostFound, hostIndex=0;
 
     struct cache *cache = cache_create(10, 0);
 
@@ -284,9 +348,41 @@ int main(void)
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        snprintf(tmpString, "server: got connection from %s\n", s);
+        sprintf(tmpString, "server: got connection from %s\n", s);
         Log("/tmp/webserver.log",tmpString);
 
+        for(i=0,hostFound=0;i<MAX_HOSTS && hostFound==0;i++)
+        {
+            if(strcmp(s,hosts[i].hostIP)==0)
+            {   
+                hostFound = 1;
+                hosts[i].isActive = 1;
+                sprintf(tmpString, "Host found with index %d\n", i);
+                Log("/tmp/webserver.log",tmpString);
+            }
+            else
+            {
+                hosts[i].isActive = 0;            
+                sprintf(tmpString, "Host not found: %s\n",s);
+                Log("/tmp/webserver.log",tmpString);
+            }
+        }
+        if(!hostFound)
+        {
+            strcpy(hosts[hostIndex].hostIP,s);
+            sprintf(tmpString, "Adding host: %s on index: %d\n",hosts[hostIndex].hostIP, hostIndex);
+            Log("/tmp/webserver.log",tmpString);    
+            for(i=0;i<MAX_HOSTS;i++)
+            {
+                if(i!=hostIndex)
+                    hosts[i].isActive = 0;        
+                else
+                    hosts[i].isActive = 1;
+            }
+            hosts[hostIndex].authorized = 0;
+            hostIndex = (hostIndex+1)%MAX_HOSTS;           // no more than MAX_HOSTS hosts managed
+            hostFound = 1;            
+        }        
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
