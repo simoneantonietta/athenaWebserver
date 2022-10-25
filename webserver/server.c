@@ -21,6 +21,7 @@
 #include "mime.h"
 #include "cache.h"
 #include "server.h"
+#include <time.h>
 
 //#define PORT "3490"  // the port users will be connecting to
 #define PORT "80"  // the port users will be connecting to
@@ -29,11 +30,13 @@
 #define SERVER_ROOT "/home/utente/serverroot"
 
 #define MAX_HOSTS 10
+#define EXPIRATION_TIME 30
 
 typedef struct hostProperties{
     unsigned char hostIP[INET6_ADDRSTRLEN];      // IP address of a host
     unsigned char authorized;                    // authorization state of a host
     unsigned char isActive;                      // the host made the last request
+    time_t expirationTime;                       // time until authorization will expire
 }hostProperties;
 
 /* Variables */
@@ -48,7 +51,7 @@ struct hostProperties hosts[MAX_HOSTS];
  * 
  * Return the value from the send() function.
  */
-int send_response(int fd, char *header, char *content_type, void *body, int content_length)
+int send_response(int fd, char *header, char *content_type, void *body, unsigned int content_length)
 {
     const int max_response_size = 262144;
     char response[max_response_size];
@@ -83,25 +86,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     return rv;
 }
 
-
-/**
- * Send a /d20 endpoint response
- */
-void get_d20(int fd)
-{
-    // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-}
-
 /**
  * Send a 404 response
  */
@@ -128,33 +112,11 @@ void resp_404(int fd)
     file_free(filedata);
 }
 
-/**
- * Read and return a file from disk or cache
- */
-void get_file(int fd, struct cache *cache, char *request_path)
-{
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-}
-
-/**
- * Search for the end of the HTTP header
- * 
- * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
- * (newline) or \r (carriage return).
- */
-char *find_start_of_body(char *header)
-{
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-}
 
 /**
  * Handle HTTP request and send response
  */
-void handle_http_request(int fd, struct cache *cache)
+void handle_http_request(int fd/*, struct cache *cache*/)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size], request_cpy[request_buffer_size];
@@ -163,7 +125,7 @@ void handle_http_request(int fd, struct cache *cache)
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type, credentials[256], credentials_b64[256], reference_credential[256], *tmpString;
-    char idx;
+    unsigned int idx;
 
     char pwdName[] = "/home/utente/serverroot/pwd";
     FILE * fDesc;
@@ -174,7 +136,7 @@ void handle_http_request(int fd, struct cache *cache)
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     
-    char activeHost=0;
+    unsigned char activeHost=0;
     while(activeHost<MAX_HOSTS && (!hosts[activeHost].isActive))
         activeHost++;
 
@@ -213,7 +175,7 @@ void handle_http_request(int fd, struct cache *cache)
 
             //printf("Mime type:%s\n\n",mime_type);
 
-            if(hosts[activeHost].authorized)
+            if(hosts[activeHost].authorized && (hosts[activeHost].expirationTime > time(NULL)))
             {
                 strcpy(logString,"Authorized\n");
                 Log("/tmp/webserver.log",logString);
@@ -247,13 +209,14 @@ void handle_http_request(int fd, struct cache *cache)
                     if(strncmp(credentials,reference_credential,strlen(reference_credential))==0)
                     {
                         hosts[activeHost].authorized = 1;
+                        hosts[activeHost].expirationTime = time(NULL)+EXPIRATION_TIME*60;
                         send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
                     }
                     else
-                        send_response(fd, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, NULL);
+                        send_response(fd, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, 0);
                 }
                 else
-                    send_response(fd, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, NULL);
+                    send_response(fd, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, 0);
             }
             
             file_free(filedata);
@@ -289,20 +252,10 @@ void handle_http_request(int fd, struct cache *cache)
             file_free(filedata);
         }
     }
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Read the first two components of the first line of the request 
- 
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
-    // (Stretch) If POST, handle the post request
+    else
+    {
+        resp_404(fd);
+    }
 }
 
 /**
@@ -312,11 +265,11 @@ int main(void)
 {
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
-    char s[INET6_ADDRSTRLEN];
+    unsigned char s[INET6_ADDRSTRLEN];
     char tmpString[200];
-    char i, hostFound, hostIndex=0;
+    unsigned char i, hostFound, hostIndex=0;
 
-    struct cache *cache = cache_create(10, 0);
+    //struct cache *cache = cache_create(10, 0);
 
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
@@ -346,14 +299,14 @@ int main(void)
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
-            s, sizeof s);
+            (char *)s, sizeof s);
         printf("server: got connection from %s\n", s);
         sprintf(tmpString, "server: got connection from %s\n", s);
         Log("/tmp/webserver.log",tmpString);
 
         for(i=0,hostFound=0;i<MAX_HOSTS && hostFound==0;i++)
         {
-            if(strcmp(s,hosts[i].hostIP)==0)
+            if(strcmp((char *)s,(char *)hosts[i].hostIP)==0)
             {   
                 hostFound = 1;
                 hosts[i].isActive = 1;
@@ -369,7 +322,7 @@ int main(void)
         }
         if(!hostFound)
         {
-            strcpy(hosts[hostIndex].hostIP,s);
+            strcpy((char *)hosts[hostIndex].hostIP,(char *)s);
             sprintf(tmpString, "Adding host: %s on index: %d\n",hosts[hostIndex].hostIP, hostIndex);
             Log("/tmp/webserver.log",tmpString);    
             for(i=0;i<MAX_HOSTS;i++)
@@ -387,7 +340,7 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
-        handle_http_request(newfd, cache);
+        handle_http_request(newfd/*, cache*/);
 
         close(newfd);
     }

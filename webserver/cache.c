@@ -4,6 +4,7 @@
 #include "hashtable.h"
 #include "cache.h"
 
+#if 0
 /**
  * Allocate a cache entry
  */
@@ -12,6 +13,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    return NULL;
 }
 
 /**
@@ -94,6 +96,7 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    return NULL;
 }
 
 void cache_free(struct cache *cache)
@@ -135,4 +138,6 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    return NULL;
 }
+#endif
