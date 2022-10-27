@@ -2,7 +2,14 @@
 <html>
   <head>
     <link rel="stylesheet" href="style.css">
-    <title>Saet I.S. || Athena</title>    
+    <title>Saet I.S. || Athena</title>   
+
+    <script>
+      function myFunction() {
+        document.getElementById("demo").innerHTML = "LALALALALAL";
+      }
+    </script> 
+
   </head>
   <body>
     <h1>
@@ -79,6 +86,11 @@
           </tr>  
         </table><br><br>                
         <button class="submit" type="submit" formmethod="post">Invia</button>
-    </form>  
+    </form> 
+
+    <br><br>
+    <p id="demo">A Paragraph</p>
+    <button type="button" onclick="myFunction()">TEST</button> 
+
   </body>
 </html>

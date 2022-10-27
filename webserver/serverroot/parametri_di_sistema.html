@@ -3,7 +3,18 @@
 <html>
   <head>
     <link rel="stylesheet" href="style.css">
-    <title>Saet I.S. || Athena</title>    
+    <title>Saet I.S. || Athena</title> 
+    <script type="text/javascript">
+      function showIP (dhcp) {
+        var vis = "block";
+        if(dhcp.checked){
+             vis = "none";
+        }
+        document.getElementById("ipTable").style.display = vis;
+        document.getElementById("gwTable").style.display = vis;
+        document.getElementById("snTable").style.display = vis;
+      }
+    </script>    
   </head>
   <body>
     <h1>
@@ -36,46 +47,46 @@
             </th>
             <th>
               <input type="hidden" class="form-input" id="dhcp" name="dhcp" value="off">
-              <input type="checkbox" class="form-input" id="dhcp" name="dhcp">
+              <input type="checkbox" class="form-input" id="dhcp" name="dhcp" onclick="showIP(this)">
             </th>
           </tr>  
         </table><br><br>
-        <table class="ip">
+        <table class="ip" name="ipTable" id="ipTable">
           <tr>
             <th class="first-col">
               <label for="ip">Indirizzo IP:</label>&emsp;
             </th>
             <th>
-              <input type="number" min="0" max="255" class="form-input" id="ip1" name="ip1" placeholder="xxx">.
-              <input type="number" min="0" max="255" class="form-input" id="ip2" name="ip2" placeholder="xxx">.
-              <input type="number" min="0" max="255" class="form-input" id="ip3" name="ip3" placeholder="xxx">.
-              <input type="number" min="0" max="255" class="form-input" id="ip4" name="ip4" placeholder="xxx">
+              <input type="number" min="0" max="255" class="form-input" id="ip1" name="ip1">.
+              <input type="number" min="0" max="255" class="form-input" id="ip2" name="ip2">.
+              <input type="number" min="0" max="255" class="form-input" id="ip3" name="ip3">.
+              <input type="number" min="0" max="255" class="form-input" id="ip4" name="ip4">
             </th>
           </tr>  
         </table><br><br>
-        <table class="ip">
+        <table class="ip" name="snTable" id="snTable">
           <tr>
             <th class="first-col">
               <label for="sn">Subnet Mask:</label>&emsp;        
             </th>
             <th>
-              <input type="number" min="0" max="255" class="form-input" id="sn1" name="sn1" placeholder="xxx">.
-              <input type="number" min="0" max="255" class="form-input" id="sn2" name="sn2" placeholder="xxx">.
-              <input type="number" min="0" max="255" class="form-input" id="sn3" name="sn3" placeholder="xxx">.
-              <input type="number" min="0" max="255" class="form-input" id="sn4" name="sn4" placeholder="xxx">
+              <input type="number" min="0" max="255" class="form-input" id="sn1" name="sn1">.
+              <input type="number" min="0" max="255" class="form-input" id="sn2" name="sn2">.
+              <input type="number" min="0" max="255" class="form-input" id="sn3" name="sn3">.
+              <input type="number" min="0" max="255" class="form-input" id="sn4" name="sn4">
             </th>
           </tr>  
         </table><br><br>
-        <table class="ip">
+        <table class="ip" name="gwTable" id="gwTable">
           <tr>
             <th class="first-col">
               <label for="gw">Gateway:</label>&emsp;&emsp;&emsp;
             </th>
             <th>
-              <input type="number" min="0" max="255" class="form-input" id="gw1" name="gw1" placeholder="xxx">.
-              <input type="number" min="0" max="255" class="form-input" id="gw2" name="gw2" placeholder="xxx">.
-              <input type="number" min="0" max="255" class="form-input" id="gw3" name="gw3" placeholder="xxx">.
-              <input type="number" min="0" max="255" class="form-input" id="gw4" name="gw4" placeholder="xxx">
+              <input type="number" min="0" max="255" class="form-input" id="gw1" name="gw1">.
+              <input type="number" min="0" max="255" class="form-input" id="gw2" name="gw2">.
+              <input type="number" min="0" max="255" class="form-input" id="gw3" name="gw3">.
+              <input type="number" min="0" max="255" class="form-input" id="gw4" name="gw4">
             </th>
           </tr>  
         </table><br><br><br><br>        
