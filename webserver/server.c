@@ -17,7 +17,6 @@
  */
 
 #include "net.h"
-#include "file.h"
 #include "mime.h"
 #include "cache.h"
 #include "server.h"
@@ -168,8 +167,14 @@ void handle_http_request(int fd/*, struct cache *cache*/)
             if (filedata == NULL) {
                 fprintf(stderr, "cannot find system %s file\n",requestResource);
                 snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
-                filedata = file_load(filepath);
+                filedata = file_load(filepath);                
             }            
+            else
+            {
+                sprintf(logString,"Chiamo fillPage per la risorsa:%s\n", requestResource);
+                Log("/tmp/webserver.log",logString);                
+                fillPage(filedata, requestResource);
+            }
 
             mime_type = mime_type_get(filepath);
 

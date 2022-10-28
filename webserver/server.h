@@ -11,6 +11,7 @@
 #include <time.h>
 #include <sys/file.h>
 #include <fcntl.h>
+#include "file.h"
 
 /* Defines */
 #define DHCP_OPTIONS 		"BOOTPROTO="
@@ -19,6 +20,8 @@
 #define BROADCAST_STRING	"BROADCAST="
 #define NETWORK_STRING		"NETWORK="
 #define GATEWAY_STRING		"GATEWAY="
+
+#define N_BYTES_PARAMS		4096
 
 /* Variables */
 typedef struct{
@@ -42,6 +45,7 @@ int parseForm(char* form, formValues * result);
 void changeIP(formValues * networkParam);
 void b64_encode(char *clrstr, char *b64dst);
 void b64_decode(char *b64src, char *clrdst);
+void fillPage(struct file_data *page, char *pageName);
 
 /* Implementation */
 void Log(char *filename, char *content)
@@ -142,9 +146,9 @@ int parseForm(char* form, formValues * result)
 	strncpy(tmpValue,strValue+4,valueLen);
 	if(strValue != NULL)
 		result->gw.addr4 = atoi(tmpValue);		
-	if(strstr(form,"dhcp=on"))
+	if(strstr(form,"dhcpChk=on"))
 		result->dhcp = 1;
-	else if(strstr(form,"dhcp=off"))
+	else if(strstr(form,"dhcpChk=off"))
 		result->dhcp = 0;		
 
 
@@ -309,4 +313,185 @@ void b64_encode(char *clrstr, char *b64dst) {
 	}
 }
 
+/* fill html page when the resource is requested by a host */
+void fillPage(struct file_data *page, char *pageName)
+{
+	FILE * fd;
+	char tmpString[100], *pageFilled, *pageCpy, *pageRow, addressString[22], paramFound=0;
+	unsigned int networkParams[13];
+	unsigned int idx=0, newPageIndex=0, i, pageRowIdx, old_pageRowIdx;
+	char networkParamList[13][7+1];
+
+	strcpy(networkParamList[0],"dhcpChk");
+	strcpy(networkParamList[1],"ip1");
+	strcpy(networkParamList[2],"ip2");
+	strcpy(networkParamList[3],"ip3");
+	strcpy(networkParamList[4],"ip4");
+	strcpy(networkParamList[5],"sn1");
+	strcpy(networkParamList[6],"sn2");
+	strcpy(networkParamList[7],"sn3");
+	strcpy(networkParamList[8],"sn4");
+	strcpy(networkParamList[9],"gw1");
+	strcpy(networkParamList[10],"gw2");
+	strcpy(networkParamList[11],"gw3");
+	strcpy(networkParamList[12],"gw4");
+
+	pageCpy = (char *)malloc(page->size);
+	memcpy(pageCpy,page->data,page->size);
+	pageFilled = malloc(page->size + N_BYTES_PARAMS);
+	printf("Page size:%d\n",page->size);
+
+	if(strncmp(pageName,"/parametri_di_centrale.html",strlen("parametri_di_centrale"))==0)
+	{
+
+	}
+	else if(strncmp(pageName,"/parametri_di_sistema.html",strlen("parametri_di_sistema"))==0)
+	{
+		/* show network configuration */
+		fd = fopen("/etc/network/network.conf", "r");
+		while(fgets(tmpString,100,fd))
+		{	
+			if(strncmp(tmpString,DHCP_OPTIONS,strlen(DHCP_OPTIONS))==0)
+			{			
+				if(strstr(tmpString,"dhcp")!=NULL)
+				{
+					networkParams[0] = 1;
+				}
+				else
+				{
+					networkParams[0] = 0;
+				}
+			}
+			else if(strncmp(tmpString,IP_STRING,strlen(IP_STRING))==0)
+			{
+				strtok(tmpString,"\"");
+				networkParams[1] = atoi(strtok(NULL,"."));
+				networkParams[2] = atoi(strtok(NULL,"."));
+				networkParams[3] = atoi(strtok(NULL,"."));
+				networkParams[4] = atoi(strtok(NULL,"\""));
+			}
+			else if(strncmp(tmpString,SUBNET_STRING,strlen(SUBNET_STRING))==0)
+			{
+				strtok(tmpString,"\"");
+				networkParams[5] = atoi(strtok(NULL,"."));
+				networkParams[6] = atoi(strtok(NULL,"."));
+				networkParams[7] = atoi(strtok(NULL,"."));
+				networkParams[8] = atoi(strtok(NULL,"\""));	
+			}
+			else if(strncmp(tmpString,GATEWAY_STRING,strlen(GATEWAY_STRING))==0)
+			{
+				strtok(tmpString,"\"");
+				networkParams[9] = atoi(strtok(NULL,"."));
+				networkParams[10] = atoi(strtok(NULL,"."));
+				networkParams[11] = atoi(strtok(NULL,"."));
+				networkParams[12] = atoi(strtok(NULL,"\""));
+			}
+		}
+		fclose(fd);
+
+		sprintf(tmpString,"DHCP:%d\tIP:%d.%d.%d.%d\tSN:%d.%d.%d.%d\tGW:%d.%d.%d.%d\n",networkParams[0],
+																					  networkParams[1], networkParams[2], networkParams[3], networkParams[4],
+																					  networkParams[5], networkParams[6], networkParams[7], networkParams[8],
+																					  networkParams[9], networkParams[10], networkParams[11], networkParams[12]);
+		Log("/tmp/webserver.log",tmpString);
+
+		pageRowIdx=0;
+		old_pageRowIdx=0;
+		while(pageRowIdx<page->size)
+		{			
+			while(pageRowIdx<page->size && ((((char*)(page->data))[pageRowIdx])!='\n'))		// search next new line
+				pageRowIdx++;
+			if(pageRowIdx<page->size)														// new line found
+			{				
+				pageRow = malloc(pageRowIdx - old_pageRowIdx + 2);				
+				memcpy(pageRow,page->data+old_pageRowIdx,pageRowIdx - old_pageRowIdx + 1);				
+				memcpy(pageFilled+newPageIndex,pageRow,pageRowIdx - old_pageRowIdx + 1);				
+				pageRow[pageRowIdx - old_pageRowIdx] = '\0';								// add terminator	
+
+				i=0;
+				while(i<13 && !paramFound)
+				{					
+					if(strstr(pageRow,networkParamList[i])!=NULL)
+						paramFound = 1;					
+					else
+						i++;
+				}
+				if(paramFound)
+				{
+					paramFound = 0;
+					for(idx=0;idx<strlen(pageRow) && (pageRow[idx]!='>');idx++)			// search end of input field
+						;
+					if(idx<strlen(pageRow))												// end of input field found
+					{
+						if(i!=0){
+							sprintf(addressString," value=\"%d\">\n",networkParams[i]);					
+							strncpy(pageFilled+newPageIndex+idx,addressString,strlen(addressString));							
+							newPageIndex += idx+strlen(addressString);																
+						}
+						else															// dhcp
+						{							
+							if(networkParams[0] == 0)									// dhcp off
+								sprintf(addressString," value=\"off\">\n");					
+							else														// dhcp on
+								sprintf(addressString," value=\"on\" checked>\n");					
+							strncpy(pageFilled+newPageIndex+idx,addressString,strlen(addressString));
+							newPageIndex += idx+strlen(addressString);												
+						}		
+					}
+					else																// error, go on without changing the row
+					{
+						newPageIndex += pageRowIdx - old_pageRowIdx + 1;		
+					}
+				}
+				else
+				{
+					if(networkParams[0])												// dhcp
+					{
+						if(strstr(pageRow,"id=\"ipTable\"")!=NULL || strstr(pageRow,"id=\"snTable\"")!=NULL || strstr(pageRow,"id=\"gwTable\"")!=NULL)
+						{
+							for(idx=0;idx<strlen(pageRow) && (pageRow[idx]!='>');idx++)			// search end of input field
+								;
+							if(idx<strlen(pageRow))												// end of input field found
+							{
+								sprintf(addressString," style=\"display: none;\">\n");
+								strncpy(pageFilled+newPageIndex+idx,addressString,strlen(addressString));
+								newPageIndex += idx+strlen(addressString);																		
+							}
+							else																// error, go on without changing the row
+							{
+								newPageIndex += pageRowIdx - old_pageRowIdx + 1;		
+							}
+						}
+						else																// error, go on without changing the row
+						{
+							newPageIndex += pageRowIdx - old_pageRowIdx + 1;		
+						}
+					}
+					else
+					{
+						newPageIndex += pageRowIdx - old_pageRowIdx + 1;
+					}
+				}
+				if(pageRow != NULL)	
+					free(pageRow);
+
+				old_pageRowIdx = ++pageRowIdx;
+			}
+		}
+		*(pageFilled+newPageIndex) = '\0';
+		free(page->data);
+		page->data = malloc(strlen(pageFilled));
+		memcpy((char *)(page->data),pageFilled,strlen(pageFilled));
+		page->size = strlen(pageFilled);	
+	}
+	else if(strncmp(pageName,"/parametri_di_supervisione.html",strlen("parametri_di_supervisione"))==0)
+	{
+
+	}
+
+	if(pageFilled != NULL)
+		free(pageFilled);
+	if(pageCpy != NULL)
+		free(pageCpy);
+}
 /* */
