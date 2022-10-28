@@ -319,7 +319,8 @@ void fillPage(struct file_data *page, char *pageName)
 	FILE * fd;
 	char tmpString[100], *pageFilled, *pageCpy, *pageRow, addressString[22], paramFound=0;
 	unsigned int networkParams[13];
-	unsigned int idx=0, newPageIndex=0, i, pageRowIdx, old_pageRowIdx;
+	unsigned int idx=0, newPageIndex=0, i, old_pageRowIdx;
+	int pageRowIdx;
 	char networkParamList[13][7+1];
 
 	strcpy(networkParamList[0],"dhcpChk");
@@ -444,33 +445,8 @@ void fillPage(struct file_data *page, char *pageName)
 					}
 				}
 				else
-				{
-					if(networkParams[0])												// if dhcp is set, ip, sn and gw tables have to be hidden
-					{
-						if(strstr(pageRow,"id=\"ipTable\"")!=NULL || strstr(pageRow,"id=\"snTable\"")!=NULL || strstr(pageRow,"id=\"gwTable\"")!=NULL)
-						{
-							for(idx=0;idx<strlen(pageRow) && (pageRow[idx]!='>');idx++)			// search end of input field
-								;
-							if(idx<strlen(pageRow))												// end of input field found
-							{
-								sprintf(addressString," style=\"display: none;\">\n");
-								strncpy(pageFilled+newPageIndex+idx,addressString,strlen(addressString));
-								newPageIndex += idx+strlen(addressString);																		
-							}
-							else																// error, go on without changing the row
-							{
-								newPageIndex += pageRowIdx - old_pageRowIdx + 1;		
-							}
-						}
-						else																// error, go on without changing the row
-						{
-							newPageIndex += pageRowIdx - old_pageRowIdx + 1;		
-						}
-					}
-					else
-					{
-						newPageIndex += pageRowIdx - old_pageRowIdx + 1;
-					}
+				{					
+						newPageIndex += pageRowIdx - old_pageRowIdx + 1;					
 				}
 				if(pageRow != NULL)	
 					free(pageRow);
