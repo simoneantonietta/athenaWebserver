@@ -176,9 +176,7 @@ void handle_http_request(int fd/*, struct cache *cache*/)
                 fillPage(filedata, requestResource);
             }
 
-            mime_type = mime_type_get(filepath);
-
-            //printf("Mime type:%s\n\n",mime_type);
+            mime_type = mime_type_get(filepath);            
 
             if(hosts[activeHost].authorized && (hosts[activeHost].expirationTime > time(NULL)))
             {
@@ -244,9 +242,7 @@ void handle_http_request(int fd/*, struct cache *cache*/)
             filedata = file_load(filepath);
 
             if (filedata == NULL) {
-                // TODO: make this non-fatal
                 fprintf(stderr, "cannot find system %s file\n",requestResource);
-                //exit(3);
                 snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
                 filedata = file_load(filepath);
             }

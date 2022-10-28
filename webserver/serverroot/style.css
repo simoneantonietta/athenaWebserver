@@ -25,6 +25,13 @@ table.ip {
   text-align: left;
 }
 
+table.central {
+  display: table;   /* Allow the centering to work */
+  table-layout: auto;
+  width: 75%;  
+  text-align: left;
+}
+
 .first-col {
   width: 175px;
   min-width: 175px;
@@ -55,11 +62,21 @@ ul#horizontal-list {
 }
 
 select {
-  width: 30%;
-  padding: 4px 8px;
+  width: 30%;  
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1;  
+}
+
+select.centralType {
+  width: 30%;  
+  height: 32px;
   border: none;
   border-radius: 4px;
   background-color: #f1f1f1;
+  padding-left: 64px; /* image-width */
+  background-repeat: no-repeat;
 }
 
 input {

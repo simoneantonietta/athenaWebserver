@@ -3,9 +3,116 @@
 <html>
   <head>
     <link rel="stylesheet" href="style.css">
-    <title>Saet I.S. || Athena</title>       
+    <title>Saet I.S. || Athena</title>  
+    <script type="text/javascript">
+      function changeCentralOptions(central){
+        switch(central.value)
+        {
+          case 'notifier':
+              document.getElementById("centralType").style.backgroundImage = "url(/images/notifier_low.png)";
+              document.getElementById("centralModel").value = "AM2000N";
+              document.getElementById("AM2000N").style.display = "initial";
+              document.getElementById("AM4000").style.display = "initial";
+              document.getElementById("AM6000N").style.display = "initial";
+              document.getElementById("AM8200").style.display = "initial";
+              document.getElementById("TFA1-298").style.display = "none";
+              document.getElementById("TFA1-596").style.display = "none";
+              document.getElementById("TFA1-1192").style.display = "none";
+              document.getElementById("XLS200").style.display = "none";
+              document.getElementById("XLS400").style.display = "none";
+              document.getElementById("XLS600").style.display = "none";
+              document.getElementById("CA3000P-NE").style.display = "none";
+              document.getElementById("CA3000P-CMP3").style.display = "none";
+              document.getElementById("CA3000P-BMP3").style.display = "none";
+              document.getElementById("CA3000P-CMP9").style.display = "none";
+              document.getElementById("DF88").style.display = "none";
+              document.getElementById("DF40").style.display = "none";
+              break;
+          case 'tecnofire':
+              document.getElementById("centralType").style.backgroundImage = "url(/images/tecnofire_low.png)";
+              document.getElementById("centralModel").value = "TFA1-298";
+              document.getElementById("AM2000N").style.display = "none";
+              document.getElementById("AM4000").style.display = "none";
+              document.getElementById("AM6000N").style.display = "none";
+              document.getElementById("AM8200").style.display = "none";
+              document.getElementById("TFA1-298").style.display = "initial";
+              document.getElementById("TFA1-596").style.display = "initial";
+              document.getElementById("TFA1-1192").style.display = "initial";
+              document.getElementById("XLS200").style.display = "none";
+              document.getElementById("XLS400").style.display = "none";
+              document.getElementById("XLS600").style.display = "none";
+              document.getElementById("CA3000P-NE").style.display = "none";
+              document.getElementById("CA3000P-CMP3").style.display = "none";
+              document.getElementById("CA3000P-BMP3").style.display = "none";
+              document.getElementById("CA3000P-CMP9").style.display = "none";
+              document.getElementById("DF88").style.display = "none";
+              document.getElementById("DF40").style.display = "none";
+              break;
+          case 'honeywell':
+              document.getElementById("centralType").style.backgroundImage = "url(/images/honeywell_low.png)";
+              document.getElementById("centralModel").value = "XLS200";
+              document.getElementById("AM2000N").style.display = "none";
+              document.getElementById("AM4000").style.display = "none";
+              document.getElementById("AM6000N").style.display = "none";
+              document.getElementById("AM8200").style.display = "none";
+              document.getElementById("TFA1-298").style.display = "none";
+              document.getElementById("TFA1-596").style.display = "none";
+              document.getElementById("TFA1-1192").style.display = "none";
+              document.getElementById("XLS200").style.display = "initial";
+              document.getElementById("XLS400").style.display = "initial";
+              document.getElementById("XLS600").style.display = "initial";
+              document.getElementById("CA3000P-NE").style.display = "none";
+              document.getElementById("CA3000P-CMP3").style.display = "none";
+              document.getElementById("CA3000P-BMP3").style.display = "none";
+              document.getElementById("CA3000P-CMP9").style.display = "none";
+              document.getElementById("DF88").style.display = "none";
+              document.getElementById("DF40").style.display = "none";
+              break;
+          case 'def':
+              document.getElementById("centralType").style.backgroundImage = "url(/images/def_low.png)";
+              document.getElementById("centralModel").value = "CA3000P-NE";
+              document.getElementById("AM2000N").style.display = "none";
+              document.getElementById("AM4000").style.display = "none";
+              document.getElementById("AM6000N").style.display = "none";
+              document.getElementById("AM8200").style.display = "none";
+              document.getElementById("TFA1-298").style.display = "none";
+              document.getElementById("TFA1-596").style.display = "none";
+              document.getElementById("TFA1-1192").style.display = "none";
+              document.getElementById("XLS200").style.display = "none";
+              document.getElementById("XLS400").style.display = "none";
+              document.getElementById("XLS600").style.display = "none";
+              document.getElementById("CA3000P-NE").style.display = "initial";
+              document.getElementById("CA3000P-CMP3").style.display = "initial";
+              document.getElementById("CA3000P-BMP3").style.display = "initial";
+              document.getElementById("CA3000P-CMP9").style.display = "initial";
+              document.getElementById("DF88").style.display = "none";
+              document.getElementById("DF40").style.display = "none";
+              break;
+          case 'detfire':
+              document.getElementById("centralType").style.backgroundImage = "url(/images/detfire_low.png)";
+              document.getElementById("centralModel").value = "DF88";
+              document.getElementById("AM2000N").style.display = "none";
+              document.getElementById("AM4000").style.display = "none";
+              document.getElementById("AM6000N").style.display = "none";
+              document.getElementById("AM8200").style.display = "none";
+              document.getElementById("TFA1-298").style.display = "none";
+              document.getElementById("TFA1-596").style.display = "none";
+              document.getElementById("TFA1-1192").style.display = "none";
+              document.getElementById("XLS200").style.display = "none";
+              document.getElementById("XLS400").style.display = "none";
+              document.getElementById("XLS600").style.display = "none";
+              document.getElementById("CA3000P-NE").style.display = "none";
+              document.getElementById("CA3000P-CMP3").style.display = "none";
+              document.getElementById("CA3000P-BMP3").style.display = "none";
+              document.getElementById("CA3000P-CMP9").style.display = "none";
+              document.getElementById("DF88").style.display = "initial";
+              document.getElementById("DF40").style.display = "initial";
+              break;
+        }
+      }
+    </script>     
   </head>
-  <body>
+  <body onload="changeCentralOptions(document.getElementById('centralType'))">
     <h1>
       <div class="row">
         <div class="column">
@@ -29,34 +136,41 @@
     </div>
     <br><br>
     <form action="/successChange.html" method="get">
-        <table class="ip">
+        <table class="central">
           <tr>
             <th class="first-col">
               <label for="centralType">Marca Centrale</label>
             </th>
             <th class="second-col">
-              <select name="centralTypes" id="centralTypes">
-                <option value="notifier">Notifier</option>
+              <select class="centralType" name="centralType" id="centralType" onchange="changeCentralOptions(this)">
+                <option value="notifier">Notifier</option>                
                 <option value="tecnofire">Tecnofire</option>
                 <option value="honeywell">Honeywell</option>
                 <option value="def">DEF</option>
                 <option value="detfire">DETFIRE</option>
               </select>            
-            </th>
-          </tr>  
-        </table><br><br>
-        <table class="ip">
-          <tr>
+            </th>            
             <th class="first-col">
               <label for="centralModel">Modello Centrale</label>
             </th>
             <th class="second-col">
               <select name="centralModel" id="centralModel">
-                <option value="notifier">Notifier</option>
-                <option value="tecnofire">Tecnofire</option>
-                <option value="honeywell">Honeywell</option>
-                <option value="def">DEF</option>
-                <option value="detfire">DETFIRE</option>
+                <option value="AM2000N" id="AM2000N">AM2000N</option>
+                <option value="AM4000" id="AM4000">AM4000</option>
+                <option value="AM6000N" id="AM6000N">AM6000N</option>
+                <option value="AM8200" id="AM8200">AM8200</option>
+                <option value="TFA1-298" id="TFA1-298">TFA1-298</option>
+                <option value="TFA1-596" id="TFA1-596">TFA1-596</option>
+                <option value="TFA1-1192" id="TFA1-1192">TFA1-1192</option>
+                <option value="XLS200" id="XLS200">XLS200</option>
+                <option value="XLS400" id="XLS400">XLS400</option>
+                <option value="XLS600" id="XLS600">XLS600</option>
+                <option value="CA3000P-NE" id="CA3000P-NE">CA3000P-NE</option>
+                <option value="CA3000P-CMP3" id="CA3000P-CMP3">CA3000P-CMP3</option>
+                <option value="CA3000P-BMP3" id="CA3000P-BMP3">CA3000P-BMP3</option>
+                <option value="CA3000P-CMP9" id="CA3000P-CMP9">CA3000P-CMP9</option>
+                <option value="DF88" id="DF88">DF88</option>
+                <option value="DF40" id="DF40">DF40</option>
               </select>
             </th>
           </tr>  

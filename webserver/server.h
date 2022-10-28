@@ -409,7 +409,7 @@ void fillPage(struct file_data *page, char *pageName)
 				pageRow[pageRowIdx - old_pageRowIdx] = '\0';								// add terminator	
 
 				i=0;
-				while(i<13 && !paramFound)
+				while(i<13 && !paramFound)												// search network parameter rows 
 				{					
 					if(strstr(pageRow,networkParamList[i])!=NULL)
 						paramFound = 1;					
@@ -445,7 +445,7 @@ void fillPage(struct file_data *page, char *pageName)
 				}
 				else
 				{
-					if(networkParams[0])												// dhcp
+					if(networkParams[0])												// if dhcp is set, ip, sn and gw tables have to be hidden
 					{
 						if(strstr(pageRow,"id=\"ipTable\"")!=NULL || strstr(pageRow,"id=\"snTable\"")!=NULL || strstr(pageRow,"id=\"gwTable\"")!=NULL)
 						{
