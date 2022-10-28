@@ -5,6 +5,39 @@
     <link rel="stylesheet" href="style.css">
     <title>Saet I.S. || Athena</title>  
     <script type="text/javascript">
+      function initialLoad(central,communication){
+        changeCentralOptions(central);
+        changeCommunicationOptions(communication);
+      }
+      function changeCommunicationOptions(communication){
+        switch(communication.value)
+        {
+          case 'com':
+            document.getElementById("centralModelLabel").style.display = "initial";
+            document.getElementById("isiPort").style.display = "initial";
+            document.getElementById("isiPort").value = "com1";
+            document.getElementById("com1").style.display = "initial";
+            document.getElementById("com2").style.display = "initial";
+            document.getElementById("usb1").style.display = "none";
+            document.getElementById("usb2").style.display = "none";
+            document.getElementById("usb3").style.display = "none";
+            break;
+          case 'usb':
+            document.getElementById("centralModelLabel").style.display = "initial";
+            document.getElementById("isiPort").style.display = "initial";
+            document.getElementById("isiPort").value = "usb1";
+            document.getElementById("com1").style.display = "none";
+            document.getElementById("com2").style.display = "none";
+            document.getElementById("usb1").style.display = "initial";
+            document.getElementById("usb2").style.display = "initial";
+            document.getElementById("usb3").style.display = "initial";
+            break;
+          case 'lan':
+            document.getElementById("isiPort").style.display = "none";
+            document.getElementById("centralModelLabel").style.display = "none";
+            break;
+        }
+      }
       function changeCentralOptions(central){
         switch(central.value)
         {
@@ -112,7 +145,7 @@
       }
     </script>     
   </head>
-  <body onload="changeCentralOptions(document.getElementById('centralType'))">
+  <body onload="initialLoad(document.getElementById('centralType'),document.getElementById('communication'))">
     <h1>
       <div class="row">
         <div class="column">
@@ -181,11 +214,23 @@
               <label for="connection">Tipo di Connessione</label>
             </th>
             <th class="second-col">
-              <select name="connection" id="connection">
+              <select name="connection" id="connection" onchange="changeCommunicationOptions(this)">
                 <option value="com">COM</option>
                 <option value="usb">USB</option>
                 <option value="lan">LAN</option>
               </select><br><br>            
+            </th>
+            <th class="first-col">
+              <label for="isiPort" id="centralModelLabel">Porta</label>
+            </th>
+            <th class="second-col">
+              <select name="isiPort" id="isiPort">
+                <option value="com1" id="com1">COM1</option>
+                <option value="com2" id="com2">COM2</option>
+                <option value="usb1" id="usb1">USB1</option>
+                <option value="usb2" id="usb2">USB2</option>
+                <option value="usb3" id="usb3">USB3</option>                
+              </select>
             </th>
           </tr>  
         </table><br><br>
