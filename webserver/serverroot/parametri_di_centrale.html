@@ -319,7 +319,7 @@
                 <label >Porta di rete</label>
               </th>
               <th class="central-col">
-                <input type="number" min="1" max="65535" name="plantId" value="502">
+                <input type="number" min="1" max="65535" name="notifierPort" id="notifierPort" value="502">
               </th>
             </tr>
             <tr>
@@ -328,7 +328,7 @@
                 <label >Polling</label>
               </th>
               <th class="central-col">
-                <input type="number" min="1" max="65535" name="plantId" value="1">
+                <input type="number" min="1" max="65535" name="notifierPolling" value="1">
               </th>
             </tr>
           </table>
@@ -374,7 +374,7 @@
                 <label for="connection">Polling</label>
               </th>
               <th class="central-col">
-                <input type="number" min="1" max="65535" name="plantId" value="1">
+                <input type="number" min="1" max="65535" name="notifierPolling" value="1">
               </th>
             </tr>
           </table>        
@@ -383,8 +383,49 @@
           <table class="ip" name="tecnofireParam" id="tecnofireParam">
             <tr>
               <th class="central-col">Parametri Centrale</th>
-            </tr>                    
-          </table>
+            </tr>                                      
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Codice</label>
+              </th>
+              <th>
+                <input class="tecnofireInput" type="text" value="12345" name="tecnofireCode" id="tecnofireCode">
+              </th>
+              <th class="central-col"></th>       
+              <th class="central-col"></th>                     
+            </tr>
+            <tr>
+              <th></th>       
+              <th class="central-col">
+                <label for="centralIp">IP</label>&emsp;&emsp;&emsp;
+              </th>
+              <th>
+                <input type="number" min="0" max="255" class="form-input" id="centralIP1" name="centralIP1">
+                <input type="number" min="0" max="255" class="form-input" id="centralIP2" name="centralIP2">
+                <input type="number" min="0" max="255" class="form-input" id="centralIP3" name="centralIP3">
+                <input type="number" min="0" max="255" class="form-input" id="centralIP4" name="centralIP4">
+              </th>
+            </tr>  
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Porta di rete</label>
+              </th>
+              <th class="central-col">
+                <input class="tecnofireInput" type="number" min="1" max="65535" name="tecnofirePort" id="tecnofirePort" value="10001">
+              </th>
+            </tr>
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Passphrase</label>
+              </th>
+              <th>
+                <input class="tecnofireInput" type="text" name="tecnofirePass" id="tecnofirePass">
+              </th>
+            </tr>
+          </table>        
         </section>
         <section name="honeywellParagraph" id="honeywellParagraph">
           <table class="ip" name="honeywellParam" id="honeywellParam">
@@ -397,14 +438,92 @@
           <table class="ip" name="defParam" id="defParam">
             <tr>
               <th class="central-col">Parametri Centrale</th>
-            </tr>           
-          </table>
+            </tr>                                    
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Impianto</label>
+              </th>
+              <th>
+                <input class="tecnofireInput" type="text" name="defPlant" id="defPlant">
+              </th>
+              <th class="central-col"></th>       
+              <th class="central-col"></th>                     
+            </tr>
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Indirizzo</label>
+              </th>
+              <th>
+                <input class="tecnofireInput" type="number" name="defAdd" id="defAdd">
+              </th>
+              <th class="central-col"></th>       
+              <th class="central-col"></th>                     
+            </tr> 
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Baud</label>&emsp;&emsp;&emsp;
+              </th>
+              <th>
+                <select name="defBaudrate" id="defBaudrate">
+                  <option value="4800">4800</option>
+                  <option value="9600">9600</option>
+                  <option value="19200">19200</option>
+                  <option value="38400">38400</option>
+                  <option value="57600">57600</option>
+                  <option value="115200">115200</option>
+                </select>
+              </th>
+            </tr>   
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Dimensioni Registro</label>
+              </th>
+              <th class="central-col">
+                <input class="tecnofireInput" type="number" name="defMaxReg">
+              </th>
+            </tr>
+            <tr>
+            <th class="central-col"></th>       
+              <th class="central-col">
+                <label for="connection">Polling</label>
+              </th>
+              <th class="central-col">
+                <input type="number" min="1" max="65535" name="defPolling" id="defPolling" value="1">
+              </th>
+            </tr>
+          </table> 
         </section>
         <section name="detfireParagraph" id="detfireParagraph">
           <table class="ip" name="detfireParam" id="detfireParam">
             <tr>
               <th class="central-col">Parametri Centrale</th>
-            </tr>          
+            </tr>               
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Indirizzo</label>
+              </th>
+              <th>
+                <input class="tecnofireInput" type="number" name="detfireAdd" id="detfireAdd">
+              </th>                    
+            </tr> 
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Baud</label>&emsp;&emsp;&emsp;
+              </th>
+              <th class="central-col">
+                <select name="detfireBaudrate" id="detfireBaudrate">
+                  <option value="4800">4800</option>
+                  <option value="9600">9600</option>
+                  <option value="19200">19200</option>
+                </select>
+              </th>
+            </tr>   
           </table>
         </section>
         <br><br><br><br><br><br>
