@@ -5,7 +5,26 @@
     <link rel="stylesheet" href="style.css">
     <title>Saet I.S. || Athena</title>  
     <script type="text/javascript">
-      function initialLoad(central,communication){
+      function initialLoad(){
+        var central = document.getElementById("centralType");
+        switch(central.value)
+        {
+          case "notifier":
+            var communication = document.getElementById("notifierConnection");
+            break; 
+          case "tecnofire":
+            var communication = document.getElementById("tecnofireConnection");
+            break; 
+          case "honeywell":
+            var communication = document.getElementById("honeywellConnection");
+            break; 
+          case "def":
+            var communication = document.getElementById("defConnection");
+            break; 
+          case "detfire":
+            var communication = document.getElementById("detfireConnection");
+            break; 
+        }
         changeCentralOptions(central);
         changeCommunicationOptions(communication);
       }
@@ -21,6 +40,8 @@
             document.getElementById("usb1").style.display = "none";
             document.getElementById("usb2").style.display = "none";
             document.getElementById("usb3").style.display = "none";
+            document.getElementById("notifierComParam").style.display = "initial";
+            document.getElementById("notifierLanParam").style.display = "none";
             break;
           case 'usb':
             document.getElementById("centralModelLabel").style.display = "initial";
@@ -31,10 +52,14 @@
             document.getElementById("usb1").style.display = "initial";
             document.getElementById("usb2").style.display = "initial";
             document.getElementById("usb3").style.display = "initial";
+            document.getElementById("notifierComParam").style.display = "none";
+            document.getElementById("notifierLanParam").style.display = "none";
             break;
           case 'lan':
             document.getElementById("isiPort").style.display = "none";
             document.getElementById("centralModelLabel").style.display = "none";
+            document.getElementById("notifierComParam").style.display = "none";
+            document.getElementById("notifierLanParam").style.display = "initial";            
             break;
         }
       }
@@ -60,6 +85,11 @@
               document.getElementById("CA3000P-CMP9").style.display = "none";
               document.getElementById("DF88").style.display = "none";
               document.getElementById("DF40").style.display = "none";
+              document.getElementById("notifierParagraph").style.display = "initial";
+              document.getElementById("tecnofireParagraph").style.display = "none";
+              document.getElementById("honeywellParagraph").style.display = "none";
+              document.getElementById("defParagraph").style.display = "none";
+              document.getElementById("detfireParagraph").style.display = "none";
               break;
           case 'tecnofire':
               document.getElementById("centralType").style.backgroundImage = "url(/images/tecnofire_low.png)";
@@ -80,6 +110,11 @@
               document.getElementById("CA3000P-CMP9").style.display = "none";
               document.getElementById("DF88").style.display = "none";
               document.getElementById("DF40").style.display = "none";
+              document.getElementById("notifierParagraph").style.display = "none";
+              document.getElementById("tecnofireParagraph").style.display = "initial";
+              document.getElementById("honeywellParagraph").style.display = "none";
+              document.getElementById("defParagraph").style.display = "none";
+              document.getElementById("detfireParagraph").style.display = "none";
               break;
           case 'honeywell':
               document.getElementById("centralType").style.backgroundImage = "url(/images/honeywell_low.png)";
@@ -100,6 +135,11 @@
               document.getElementById("CA3000P-CMP9").style.display = "none";
               document.getElementById("DF88").style.display = "none";
               document.getElementById("DF40").style.display = "none";
+              document.getElementById("notifierParagraph").style.display = "none";
+              document.getElementById("tecnofireParagraph").style.display = "none";
+              document.getElementById("honeywellParagraph").style.display = "initial";
+              document.getElementById("defParagraph").style.display = "none";
+              document.getElementById("detfireParagraph").style.display = "none";
               break;
           case 'def':
               document.getElementById("centralType").style.backgroundImage = "url(/images/def_low.png)";
@@ -120,6 +160,11 @@
               document.getElementById("CA3000P-CMP9").style.display = "initial";
               document.getElementById("DF88").style.display = "none";
               document.getElementById("DF40").style.display = "none";
+              document.getElementById("notifierParagraph").style.display = "none";
+              document.getElementById("tecnofireParagraph").style.display = "none";
+              document.getElementById("honeywellParagraph").style.display = "none";
+              document.getElementById("defParagraph").style.display = "initial";
+              document.getElementById("detfireParagraph").style.display = "none";              
               break;
           case 'detfire':
               document.getElementById("centralType").style.backgroundImage = "url(/images/detfire_low.png)";
@@ -140,12 +185,17 @@
               document.getElementById("CA3000P-CMP9").style.display = "none";
               document.getElementById("DF88").style.display = "initial";
               document.getElementById("DF40").style.display = "initial";
+              document.getElementById("notifierParagraph").style.display = "none";
+              document.getElementById("tecnofireParagraph").style.display = "none";
+              document.getElementById("honeywellParagraph").style.display = "none";
+              document.getElementById("defParagraph").style.display = "none";
+              document.getElementById("detfireParagraph").style.display = "initial";
               break;
         }
       }
     </script>     
   </head>
-  <body onload="initialLoad(document.getElementById('centralType'),document.getElementById('communication'))">
+  <body onload="initialLoad()">
     <h1>
       <div class="row">
         <div class="column">
@@ -168,13 +218,13 @@
         </div>
     </div>
     <br><br>
-    <form action="/successChange.html" method="get">
+    <form action="/successChange.html" method="get" id="centralForm" name="centralForm">
         <table class="central">
           <tr>
-            <th class="first-col">
+            <th class="central-col">
               <label for="centralType">Marca Centrale</label>
             </th>
-            <th class="second-col">
+            <th class="central-col">
               <select class="centralType" name="centralType" id="centralType" onchange="changeCentralOptions(this)">
                 <option value="notifier">Notifier</option>                
                 <option value="tecnofire">Tecnofire</option>
@@ -182,11 +232,12 @@
                 <option value="def">DEF</option>
                 <option value="detfire">DETFIRE</option>
               </select>            
-            </th>            
-            <th class="first-col">
+            </th>           
+            <th class="central-col"></th> 
+            <th class="central-col">
               <label for="centralModel">Modello Centrale</label>
             </th>
-            <th class="second-col">
+            <th class="central-col">
               <select name="centralModel" id="centralModel">
                 <option value="AM2000N" id="AM2000N">AM2000N</option>
                 <option value="AM4000" id="AM4000">AM4000</option>
@@ -207,33 +258,156 @@
               </select>
             </th>
           </tr>  
-        </table><br><br>
-        <table class="ip">
-          <tr>
-            <th class="first-col">
-              <label for="connection">Tipo di Connessione</label>
-            </th>
-            <th class="second-col">
-              <select name="connection" id="connection" onchange="changeCommunicationOptions(this)">
-                <option value="com">COM</option>
-                <option value="usb">USB</option>
-                <option value="lan">LAN</option>
-              </select><br><br>            
-            </th>
-            <th class="first-col">
-              <label for="isiPort" id="centralModelLabel">Porta</label>
-            </th>
-            <th class="second-col">
-              <select name="isiPort" id="isiPort">
-                <option value="com1" id="com1">COM1</option>
-                <option value="com2" id="com2">COM2</option>
-                <option value="usb1" id="usb1">USB1</option>
-                <option value="usb2" id="usb2">USB2</option>
-                <option value="usb3" id="usb3">USB3</option>                
-              </select>
-            </th>
-          </tr>  
-        </table><br><br>
+        </table>
+        <br><br><br><br><br><br>
+        <section name="notifierParagraph" id="notifierParagraph">
+          <table class="centralParam" name="notifierParam" id="notifierParam">
+            <tr>
+              <th class="central-col">Parametri Centrale</th>
+            </tr>          
+            <tr>     
+              <th class="first-col"></th>       
+              <th class="central-col">
+                <label for="connection">Tipo di Connessione</label>
+              </th>
+              <th class="central-col">
+                <select name="notifierConnection" id="notifierConnection" onchange="changeCommunicationOptions(this)">
+                  <option value="com">COM</option>
+                  <option value="usb">USB</option>
+                  <option value="lan">LAN</option>
+                </select>          
+              </th>
+              <th class="central-col">
+                <label for="isiPort" id="centralModelLabel">Porta</label>
+              </th>
+              <th class="central-col">
+                <select name="isiPort" id="isiPort">
+                  <option value="com1" id="com1">COM1</option>
+                  <option value="com2" id="com2">COM2</option>
+                  <option value="usb1" id="usb1">USB1</option>
+                  <option value="usb2" id="usb2">USB2</option>
+                  <option value="usb3" id="usb3">USB3</option>                
+                </select>
+              </th>
+            </tr>
+          </table>
+          <table class="centralParam" name="notifierLanParam" id="notifierLanParam" >
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Indirizzo</label>
+              </th>
+              <th class="central-col">
+                <input type="number" min="1" max="65535" name="plantId">
+              </th>
+            </tr>
+            <tr>
+              <th></th>       
+              <th class="central-col">
+                <label for="centralIp">IP</label>&emsp;&emsp;&emsp;
+              </th>
+              <th>
+                <input type="number" min="0" max="255" class="form-input" id="centralIP1" name="centralIP1">
+                <input type="number" min="0" max="255" class="form-input" id="centralIP2" name="centralIP2">
+                <input type="number" min="0" max="255" class="form-input" id="centralIP3" name="centralIP3">
+                <input type="number" min="0" max="255" class="form-input" id="centralIP4" name="centralIP4">
+              </th>
+            </tr>  
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Porta di rete</label>
+              </th>
+              <th class="central-col">
+                <input type="number" min="1" max="65535" name="plantId" value="502">
+              </th>
+            </tr>
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Polling</label>
+              </th>
+              <th class="central-col">
+                <input type="number" min="1" max="65535" name="plantId" value="1">
+              </th>
+            </tr>
+          </table>
+          <table class="centralParam" name="notifierComParam" id="notifierComParam" >
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Indirizzo</label>
+              </th>
+              <th class="central-col">
+                <input type="number" min="1" max="65535" name="plantId">
+              </th>
+            </tr>
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Baud</label>&emsp;&emsp;&emsp;
+              </th>
+              <th>
+                <select name="nofifierBaudrate" id="nofifierBaudrate">
+                  <option value="4800">4800</option>
+                  <option value="9600">9600</option>
+                  <option value="19200">19200</option>
+                </select>
+              </th>
+            </tr>  
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Numerazione</label>
+              </th>
+              <th>
+                <select name="nofifierNumeration" id="nofifierNumeration">
+                  <option value="standard">Standard</option>
+                  <option value="vecchia">Vecchia</option>
+                  <option value="stdRiass">Standard Riassuntiva</option>
+                </select>
+              </th>
+            </tr>
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label for="connection">Polling</label>
+              </th>
+              <th class="central-col">
+                <input type="number" min="1" max="65535" name="plantId" value="1">
+              </th>
+            </tr>
+          </table>        
+        </section>
+        <section name="tecnofireParagraph" id="tecnofireParagraph">
+          <table class="ip" name="tecnofireParam" id="tecnofireParam">
+            <tr>
+              <th class="central-col">Parametri Centrale</th>
+            </tr>                    
+          </table>
+        </section>
+        <section name="honeywellParagraph" id="honeywellParagraph">
+          <table class="ip" name="honeywellParam" id="honeywellParam">
+            <tr>
+              <th class="central-col">Parametri Centrale</th>
+            </tr>                    
+          </table>
+        </section>
+        <section name="defParagraph" id="defParagraph">
+          <table class="ip" name="defParam" id="defParam">
+            <tr>
+              <th class="central-col">Parametri Centrale</th>
+            </tr>           
+          </table>
+        </section>
+        <section name="detfireParagraph" id="detfireParagraph">
+          <table class="ip" name="detfireParam" id="detfireParam">
+            <tr>
+              <th class="central-col">Parametri Centrale</th>
+            </tr>          
+          </table>
+        </section>
+        <br><br><br><br><br><br>
         <button class="submit" type="submit" formmethod="post">Invia</button>
     </form>  
   </body>
