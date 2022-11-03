@@ -129,7 +129,9 @@ void handle_http_request(int fd/*, struct cache *cache*/)
     char pwdName[] = "/home/utente/serverroot/pwd";
     FILE * fDesc;
 
-    formValues formVal;
+    ipFormValues_t ipFormVal;
+    isiFormValues_t isiFormVal;
+    svFormValues_t svFormVal;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -227,17 +229,46 @@ void handle_http_request(int fd/*, struct cache *cache*/)
         else if(strcmp(requestKind,"POST")==0) 
         {
             printf("POST detected\n");
-            Log("/tmp/webserver.log","POST detected\n");               
-            int result= parseForm(request_cpy, &formVal);
-            Log("/tmp/webserver.log","POST parsified\n");               
-            changeIP(&formVal);
-            Log("/tmp/webserver.log","NETWORK changed\n");               
-            if(result)         
+            Log("/tmp/webserver.log","POST detected\n");              
+
+            if(strstr(request_cpy,"parametri_di_sistema.html") != NULL)
             {
-                sprintf(logString, "Form Values detected:%d\n",result);        
-                Log("/tmp/webserver.log", logString);
+                int result= parseSystemForm(request_cpy, &ipFormVal);
+                Log("/tmp/webserver.log","POST parsified\n");               
+                changeIP(&ipFormVal);
+                Log("/tmp/webserver.log","NETWORK changed\n");               
+                if(result)         
+                {
+                    sprintf(logString, "Form Values detected:%d\n",result);        
+                    Log("/tmp/webserver.log", logString);
+                }
             }
-            // Fetch the index.html file
+            else if(strstr(request_cpy,"parametri_di_centrale.html") != NULL)
+            {
+                int result= parseCentralForm(request_cpy, &isiFormVal);
+                Log("/tmp/webserver.log","POST parsified\n");               
+                changeIsiConf(&isiFormVal);
+                Log("/tmp/webserver.log","NETWORK changed\n");               
+                if(result)         
+                {
+                    sprintf(logString, "Form Values detected:%d\n",result);        
+                    Log("/tmp/webserver.log", logString);
+                }
+            }
+            else if(strstr(request_cpy,"parametri_di_supervisione.html") != NULL)
+            {
+                int result= parseSupervisorForm(request_cpy, &svFormVal);
+                Log("/tmp/webserver.log","POST parsified\n");               
+                changeSV(&svFormVal);
+                Log("/tmp/webserver.log","NETWORK changed\n");               
+                if(result)         
+                {
+                    sprintf(logString, "Form Values detected:%d\n",result);        
+                    Log("/tmp/webserver.log", logString);
+                }
+            }
+
+            // Fetch the requested file
             snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, requestResource);
             filedata = file_load(filepath);
 

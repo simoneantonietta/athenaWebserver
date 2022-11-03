@@ -290,27 +290,36 @@
                 </select>
               </th>
             </tr>
-          </table>
-          <table class="centralParam" name="notifierLanParam" id="notifierLanParam" >
             <tr>
               <th class="central-col"></th>       
               <th class="central-col">
                 <label >Indirizzo</label>
               </th>
               <th class="central-col">
-                <input type="number" min="1" max="65535" name="plantId">
+                <input class="tecnofireInput" type="number" min="1" max="65535" name="notifierId">
               </th>
             </tr>
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Polling</label>
+              </th>
+              <th class="central-col">
+                <input class="tecnofireInput" type="number" min="1" max="65535" name="notifierPolling" value="1">
+              </th>
+            </tr>
+          </table>
+          <table class="centralParam" name="notifierLanParam" id="notifierLanParam" >            
             <tr>
               <th></th>       
               <th class="central-col">
                 <label for="centralIp">IP</label>&emsp;&emsp;&emsp;
               </th>
               <th>
-                <input type="number" min="0" max="255" class="form-input" id="centralIP1" name="centralIP1">
-                <input type="number" min="0" max="255" class="form-input" id="centralIP2" name="centralIP2">
-                <input type="number" min="0" max="255" class="form-input" id="centralIP3" name="centralIP3">
-                <input type="number" min="0" max="255" class="form-input" id="centralIP4" name="centralIP4">
+                <input type="number" min="0" max="255" class="form-input" id="notifierIP1" name="notifierIP1">
+                <input type="number" min="0" max="255" class="form-input" id="notifierIP2" name="notifierIP2">
+                <input type="number" min="0" max="255" class="form-input" id="notifierIP3" name="notifierIP3">
+                <input type="number" min="0" max="255" class="form-input" id="notifierIP4" name="notifierIP4">
               </th>
             </tr>  
             <tr>
@@ -321,34 +330,16 @@
               <th class="central-col">
                 <input type="number" min="1" max="65535" name="notifierPort" id="notifierPort" value="502">
               </th>
-            </tr>
-            <tr>
-              <th class="central-col"></th>       
-              <th class="central-col">
-                <label >Polling</label>
-              </th>
-              <th class="central-col">
-                <input type="number" min="1" max="65535" name="notifierPolling" value="1">
-              </th>
-            </tr>
+            </tr>            
           </table>
-          <table class="centralParam" name="notifierComParam" id="notifierComParam" >
-            <tr>
-              <th class="central-col"></th>       
-              <th class="central-col">
-                <label >Indirizzo</label>
-              </th>
-              <th class="central-col">
-                <input type="number" min="1" max="65535" name="plantId">
-              </th>
-            </tr>
+          <table class="centralParam" name="notifierComParam" id="notifierComParam" >            
             <tr>
               <th class="central-col"></th>       
               <th class="central-col">
                 <label >Baud</label>&emsp;&emsp;&emsp;
               </th>
               <th>
-                <select name="nofifierBaudrate" id="nofifierBaudrate">
+                <select class="fullWidth" name="notifierBaudrate" id="notifierBaudrate">
                   <option value="4800">4800</option>
                   <option value="9600">9600</option>
                   <option value="19200">19200</option>
@@ -361,22 +352,13 @@
                 <label >Numerazione</label>
               </th>
               <th>
-                <select name="nofifierNumeration" id="nofifierNumeration">
+                <select class="fullWidth" name="notifierNumeration" id="notifierNumeration">
                   <option value="standard">Standard</option>
                   <option value="vecchia">Vecchia</option>
                   <option value="stdRiass">Standard Riassuntiva</option>
                 </select>
               </th>
-            </tr>
-            <tr>
-              <th class="central-col"></th>       
-              <th class="central-col">
-                <label for="connection">Polling</label>
-              </th>
-              <th class="central-col">
-                <input type="number" min="1" max="65535" name="notifierPolling" value="1">
-              </th>
-            </tr>
+            </tr>            
           </table>        
         </section>
         <section name="tecnofireParagraph" id="tecnofireParagraph">
@@ -401,10 +383,10 @@
                 <label for="centralIp">IP</label>&emsp;&emsp;&emsp;
               </th>
               <th>
-                <input type="number" min="0" max="255" class="form-input" id="centralIP1" name="centralIP1">
-                <input type="number" min="0" max="255" class="form-input" id="centralIP2" name="centralIP2">
-                <input type="number" min="0" max="255" class="form-input" id="centralIP3" name="centralIP3">
-                <input type="number" min="0" max="255" class="form-input" id="centralIP4" name="centralIP4">
+                <input type="number" min="0" max="255" class="form-input" id="tecnofireIP1" name="tecnofireIP1">
+                <input type="number" min="0" max="255" class="form-input" id="tecnofireIP2" name="tecnofireIP2">
+                <input type="number" min="0" max="255" class="form-input" id="tecnofireIP3" name="tecnofireIP3">
+                <input type="number" min="0" max="255" class="form-input" id="tecnofireIP4" name="tecnofireIP4">
               </th>
             </tr>  
             <tr>
@@ -456,7 +438,7 @@
                 <label >Indirizzo</label>
               </th>
               <th>
-                <input class="tecnofireInput" type="number" name="defAdd" id="defAdd">
+                <input class="tecnofireInput" type="number" name="defId" id="defId">
               </th>
               <th class="central-col"></th>       
               <th class="central-col"></th>                     
