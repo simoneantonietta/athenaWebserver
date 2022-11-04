@@ -64,15 +64,23 @@ typedef struct{
 	
 }svFormValues_t;
 
+typedef struct{
+	char * username;
+	char * oldPassword;
+	char * newPassword;
+	char * newPassword2;
+}credentialFormValues_t;
 
 /* Index */
 void Log(char *filename, char *content);
 int parseSystemForm(char* form, ipFormValues_t * result);
 int parseCentralForm(char* form, isiFormValues_t * result);
 int parseSupervisorForm(char* form, svFormValues_t * result);
+int parseCredentialForm(char* form, credentialFormValues_t * result);
 void changeIP(ipFormValues_t * networkParam);
 void changeIsiConf(isiFormValues_t * networkParam);
 void changeSV(svFormValues_t * networkParam);
+int changeCredential(credentialFormValues_t * credentialParam);
 void b64_encode(char *clrstr, char *b64dst);
 void b64_decode(char *b64src, char *clrdst);
 void fillPage(struct file_data *page, char *pageName);
@@ -569,6 +577,72 @@ int parseSupervisorForm(char* form, svFormValues_t * result)
     return qty;   
 }
 
+int parseCredentialForm(char* form, credentialFormValues_t * result)
+{
+	unsigned int qty = 0, i, nParam=0;
+	
+	for(i=0; i<strlen(form);i++)
+	{
+		if(form[i]=='&')
+			nParam++;
+	}
+	if(nParam)
+		nParam++;
+
+	printf("\nThere are %d Parameters\n",nParam);
+
+	char *strValue, tmpValue[64];
+	unsigned char valueLen;
+	
+	strValue = strstr(form,"oldPwd=");
+	if(strValue != NULL)	
+	{
+		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
+			;		
+		strncpy(tmpValue,strValue+strlen("oldPwd="),valueLen-strlen("oldPwd="));			
+		tmpValue[valueLen-strlen("oldPwd=")] = '\0';
+		result->oldPassword = (char *)malloc(strlen(tmpValue)+1);
+		strncpy(result->oldPassword,tmpValue,strlen(tmpValue));
+		result->oldPassword[valueLen-strlen("oldPwd=")] = '\0';				
+	}
+	strValue = strstr(form,"newPwd=");
+	if(strValue != NULL)
+	{
+		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
+			;		
+		strncpy(tmpValue,strValue+strlen("newPwd="),valueLen-strlen("newPwd="));
+		tmpValue[valueLen-strlen("newPwd=")] = '\0';
+		result->newPassword = (char *)malloc(strlen(tmpValue)+1);
+		strncpy(result->newPassword,tmpValue,strlen(tmpValue));
+		result->newPassword[valueLen-strlen("newPwd=")] = '\0';
+	}
+	strValue = strstr(form,"newPwd2=");
+	if(strValue != NULL)
+	{
+		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
+			;		
+		strncpy(tmpValue,strValue+strlen("newPwd2="),valueLen-strlen("newPwd2="));
+		tmpValue[valueLen-strlen("newPwd2=")] = '\0';
+		result->newPassword2 = (char *)malloc(strlen(tmpValue)+1);
+		strncpy(result->newPassword2,tmpValue,strlen(tmpValue));
+		result->newPassword2[valueLen-strlen("newPwd2=")] = '\0';
+	}
+	strValue = strstr(form,"user=");
+	if(strValue != NULL)
+	{
+		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
+			;		
+		strncpy(tmpValue,strValue+strlen("user="),valueLen-strlen("user="));
+		tmpValue[valueLen-strlen("user=")] = '\0';
+		result->username = (char *)malloc(strlen(tmpValue)+1);
+		strncpy(result->username,tmpValue,strlen(tmpValue));
+		result->username[valueLen-strlen("user=")] = '\0';
+	}
+
+	printf("Ho finito di parsificare le credenziali\n");
+    return qty;   
+}
+
 void changeIP(ipFormValues_t * networkParam)
 {
 	FILE * fd = fopen("/etc/network/network.conf","r");
@@ -652,6 +726,46 @@ void changeIsiConf(isiFormValues_t * isiParam)
 void changeSV(svFormValues_t * svParam)
 {
 
+}
+
+int changeCredential(credentialFormValues_t * credentialParam)
+{
+	unsigned int i;
+	int returnVal = 0;
+	FILE *fd = fopen("serverroot/pwd","r");
+	char tmpString[256], username[64], password[64], index;
+	
+	fgets(tmpString,sizeof(tmpString),fd);
+	fclose(fd);
+
+	for(i=0;tmpString[i]!=':' && i<sizeof(username);i++)
+		username[i] = tmpString[i];	
+	username[i++] = '\0';
+	index = i;
+	while(tmpString[i]!='\n' && i<sizeof(username))
+	{
+		password[i-index] = tmpString[i];
+		i++;
+	}
+	password[i-index] = '\0';
+
+	if( (strcmp(credentialParam->username,username)==0)&&
+		(strcmp(credentialParam->oldPassword,password)==0)&&
+		(strcmp(credentialParam->newPassword,credentialParam->newPassword2)==0))
+	{		
+		printf("Sto cambiando credenziali\n");
+		fd = fopen("serverroot/pwd","w");
+		fprintf(fd,"%s:%s\n", username, credentialParam->newPassword);
+		fclose(fd);
+		returnVal = 1;
+	}
+
+	free(credentialParam->username);
+	free(credentialParam->oldPassword);
+	free(credentialParam->newPassword);
+	free(credentialParam->newPassword2);
+
+	return returnVal;
 }
 
 

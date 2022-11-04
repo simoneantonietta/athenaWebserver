@@ -125,6 +125,7 @@ void handle_http_request(int fd/*, struct cache *cache*/)
     struct file_data *filedata; 
     char *mime_type, credentials[256], credentials_b64[256], reference_credential[256], *tmpString;
     unsigned int idx;
+    int changePwd = 0;
 
     char pwdName[] = "/home/utente/serverroot/pwd";
     FILE * fDesc;
@@ -132,6 +133,7 @@ void handle_http_request(int fd/*, struct cache *cache*/)
     ipFormValues_t ipFormVal;
     isiFormValues_t isiFormVal;
     svFormValues_t svFormVal;
+    credentialFormValues_t credentialFormVal;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -208,10 +210,13 @@ void handle_http_request(int fd/*, struct cache *cache*/)
                     fgets(reference_credential,sizeof(reference_credential),fDesc);
                     fclose(fDesc);
 
-                    /*sprintf(logString,"reference_credential:%s\n",reference_credential);
-                    Log("/tmp/webserver.log",logString);*/
+                   /* sprintf(logString,"reference_credential:%s\n",reference_credential);
+                    Log("/tmp/webserver.log",logString);
                         
-                    if(strncmp(credentials,reference_credential,strlen(reference_credential))==0)
+                    sprintf(logString,"credentials:%s\n",credentials);
+                    Log("/tmp/webserver.log",logString);*/
+
+                    if(strncmp(credentials,reference_credential,strlen(reference_credential)-1)==0)         // compare strlen(reference_credential)-1 to exclude '\n'
                     {
                         hosts[activeHost].authorized = 1;
                         hosts[activeHost].expirationTime = time(NULL)+EXPIRATION_TIME*60;
@@ -248,7 +253,7 @@ void handle_http_request(int fd/*, struct cache *cache*/)
                 int result= parseCentralForm(request_cpy, &isiFormVal);
                 Log("/tmp/webserver.log","POST parsified\n");               
                 changeIsiConf(&isiFormVal);
-                Log("/tmp/webserver.log","NETWORK changed\n");               
+                Log("/tmp/webserver.log","isi.conf changed\n");               
                 if(result)         
                 {
                     sprintf(logString, "Form Values detected:%d\n",result);        
@@ -260,7 +265,19 @@ void handle_http_request(int fd/*, struct cache *cache*/)
                 int result= parseSupervisorForm(request_cpy, &svFormVal);
                 Log("/tmp/webserver.log","POST parsified\n");               
                 changeSV(&svFormVal);
-                Log("/tmp/webserver.log","NETWORK changed\n");               
+                Log("/tmp/webserver.log","supervisor parameters changed\n");               
+                if(result)         
+                {
+                    sprintf(logString, "Form Values detected:%d\n",result);        
+                    Log("/tmp/webserver.log", logString);
+                }
+            }
+            else if(strstr(request_cpy,"credenziali.html") != NULL)
+            {
+                int result= parseCredentialForm(request_cpy, &credentialFormVal);
+                Log("/tmp/webserver.log","POST parsified\n");               
+                changePwd = changeCredential(&credentialFormVal);
+                Log("/tmp/webserver.log","credentials changed\n");               
                 if(result)         
                 {
                     sprintf(logString, "Form Values detected:%d\n",result);        
@@ -270,6 +287,7 @@ void handle_http_request(int fd/*, struct cache *cache*/)
 
             // Fetch the requested file
             snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, requestResource);
+            
             filedata = file_load(filepath);
 
             if (filedata == NULL) {
@@ -280,7 +298,14 @@ void handle_http_request(int fd/*, struct cache *cache*/)
 
             mime_type = mime_type_get(filepath);
 
-            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            if(changePwd == 1)
+            {
+                hosts[activeHost].authorized = 0;
+                send_response(fd, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, 0);
+            }
+            else
+                send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            
             file_free(filedata);
         }
     }
