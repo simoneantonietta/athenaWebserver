@@ -47,7 +47,7 @@
               <label for="svPort">Porta Supervisore</label>        
             </th>
             <th class="second-col">
-              <input type="text" class="form-input" id="svPort" name="svPort">
+              <input type="number" class="form-input" id="svPort" name="svPort">
             </th>
           </tr>  
         </table><br><br>
@@ -56,28 +56,185 @@
             <th class="first-col">
               <label for="phoneBook">Rubrica Telefonica:</label>
             </th>
-            <th class="second-col">
-              <input type="text" class="form-input" id="cell1" name="cell1"><br><br>
-              <input type="text" class="form-input" id="cell2" name="cell2"><br><br>
-              <input type="text" class="form-input" id="cell3" name="cell3"><br><br>
-              <input type="text" class="form-input" id="cell4" name="cell4"><br><br>
-              <input type="text" class="form-input" id="cell5" name="cell5"><br><br>
-              <input type="text" class="form-input" id="cell6" name="cell6"><br><br>
-              <input type="text" class="form-input" id="cell7" name="cell7"><br><br>
-              <input type="text" class="form-input" id="cell8" name="cell8"><br><br>
-            </th>
-          </tr>  
-        </table><br><br>
-        <table class="ip">
+          </tr>
           <tr>
-            <th class="first-col">
-              <label for="eventConfig">Configurazione eventi:</label>
+            <th class="first-col"></th>
+            <th class="centralParam-col">Descrizione</th>
+            <th class="centralParam-col">Numero</th>
+            <th class="centralParam-col">SMS</th>
+            <th class="centralParam-col">Voce</th>
+            <th class="centralParam-col">Segnalazioni</th>
+          </tr>
+          <tr>
+            <th class="first-col"></th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="descCell1" name="descCell1">              
             </th>
-            <th class="second-col">
-              <input type="text" class="form-input" id="eventConfig" name="eventConfig"><br><br>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="cell1" name="cell1">
             </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="mexCell1" id="mexCell1">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="voiceCell1" id="voiceCell1">
+            </th>
+            <th class="centralParam-col">
+              <select class="fullWidth" name="alarmCell1" id="alarmCell1">
+                <option value="alarm">Allarmi</option>
+                <option value="diagnostic">Diagnostica</option>
+                <option value="alarm_diagnostic">Allarmi + Diagnostica</option>
+              </select>
+            </th>
+          </tr>
+          <tr>
+            <th class="first-col"></th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="descCell2" name="descCell2">              
+            </th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="cell2" name="cell2">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="mexCell2" id="mexCell2">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="voiceCell2" id="voiceCell2">
+            </th>
+            <th class="centralParam-col">
+              <select class="fullWidth" name="alarmCell2" id="alarmCell2">
+                <option value="alarm">Allarmi</option>
+                <option value="diagnostic">Diagnostica</option>
+                <option value="alarm_diagnostic">Allarmi + Diagnostica</option>
+              </select>
+          </tr>
+          <tr>
+            <th class="first-col"></th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="descCell3" name="descCell3">              
+            </th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="cell3" name="cell3">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="mexCell3" id="mexCell3">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="voiceCell3" id="voiceCell3">
+            </th>
+            <th class="centralParam-col">
+              <select class="fullWidth" name="alarmCell3" id="alarmCell3">
+                <option value="alarm">Allarmi</option>
+                <option value="diagnostic">Diagnostica</option>
+                <option value="alarm_diagnostic">Allarmi + Diagnostica</option>
+              </select>
+          </tr>
+          <tr>
+            <th class="first-col"></th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="descCell4" name="descCell4">              
+            </th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="cell4" name="cell4">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="mexCell4" id="mexCell4">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="voiceCell4" id="voiceCell4">
+            </th>
+            <th class="centralParam-col">
+              <select class="fullWidth" name="alarmCell4" id="alarmCell4">
+                <option value="alarm">Allarmi</option>
+                <option value="diagnostic">Diagnostica</option>
+                <option value="alarm_diagnostic">Allarmi + Diagnostica</option>
+              </select>
+          </tr>
+          <tr>
+            <th class="first-col"></th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="descCell5" name="descCell5">              
+            </th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="cell5" name="cell5">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="mexCell5" id="mexCell5">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="voiceCell5" id="voiceCell5">
+            </th>
+            <th class="centralParam-col">
+              <select class="fullWidth" name="alarmCell5" id="alarmCell5">
+                <option value="alarm">Allarmi</option>
+                <option value="diagnostic">Diagnostica</option>
+                <option value="alarm_diagnostic">Allarmi + Diagnostica</option>
+              </select>
+          </tr>
+          <tr>
+            <th class="first-col"></th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="descCell6" name="descCell6">              
+            </th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="cell6" name="cell6">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="mexCell6" id="mexCell6">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="voiceCell6" id="voiceCell6">
+            </th>
+            <th class="centralParam-col">
+              <select class="fullWidth" name="alarmCell6" id="alarmCell6">
+                <option value="alarm">Allarmi</option>
+                <option value="diagnostic">Diagnostica</option>
+                <option value="alarm_diagnostic">Allarmi + Diagnostica</option>
+              </select>
+          </tr>
+          <tr>
+            <th class="first-col"></th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="descCell7" name="descCell7">              
+            </th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="cell7" name="cell7">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="mexCell7" id="mexCell7">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="voiceCell7" id="voiceCell7">
+            </th>
+            <th class="centralParam-col">
+              <select class="fullWidth" name="alarmCell7" id="alarmCell7">
+                <option value="alarm">Allarmi</option>
+                <option value="diagnostic">Diagnostica</option>
+                <option value="alarm_diagnostic">Allarmi + Diagnostica</option>
+              </select>
+          </tr>
+          <tr>
+            <th class="first-col"></th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="descCell8" name="descCell8">
+            </th>
+            <th class="centralParam-col">
+              <input type="text" class="cell-input" id="cell8" name="cell8">
+            </th>            
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="mexCell8" id="mexCell8">
+            </th>
+            <th class="centralParam-col">
+              <input class="checkbox" type="checkbox" name="voiceCell8" id="voiceCell8">
+            </th>
+            <th class="centralParam-col">
+              <select class="fullWidth" name="alarmCell8" id="alarmCell8">
+                <option value="alarm">Allarmi</option>
+                <option value="diagnostic">Diagnostica</option>
+                <option value="alarm_diagnostic">Allarmi + Diagnostica</option>
+              </select>
           </tr>  
-        </table><br><br>                
+        </table><br><br>        
         <button class="submit" type="submit" formmethod="post">Invia</button>
     </form> 
   </body>
