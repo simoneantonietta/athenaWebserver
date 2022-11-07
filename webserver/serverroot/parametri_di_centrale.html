@@ -27,6 +27,12 @@
         }
         changeCentralOptions(central);
         changeCommunicationOptions(communication);
+        var i;
+        for(i=0;i<8;i++)
+        {
+          var inputName = "in" + (i+1) + "Function";
+          showInputSetting(document.getElementById(inputName));
+        }
       }
       function changeCommunicationOptions(communication){
         switch(communication.value)
@@ -230,7 +236,7 @@
         var inputRestoreConditionString = "restoreCondition" + inputNumber;              
         if(input.value == "3")            // Bypass
         {
-          console.log("Bypass");          
+          //console.log("Bypass");          
           document.getElementById(inputDescString).style.display = "none";
           document.getElementById(input24hString).style.display = "none";
           document.getElementById(inputDelayString).style.display = "none";
@@ -240,7 +246,7 @@
         }
         else
         {
-          console.log("Non Bypass");
+          //console.log("Non Bypass");
           document.getElementById(inputDescString).style.display = "table-row";
           document.getElementById(input24hString).style.display = "table-row";
           document.getElementById(inputDelayString).style.display = "table-row";
@@ -546,7 +552,7 @@
                 <label >Indirizzo</label>
               </th>
               <th>
-                <input class="tecnofireInput" type="number" name="detfireAdd" id="detfireAdd" value="aaa">
+                <input class="tecnofireInput" type="text" name="detfireAdd" id="detfireAdd" value="aaa">
               </th>                    
             </tr> 
             <tr>

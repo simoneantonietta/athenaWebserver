@@ -24,7 +24,14 @@
 
 #define N_BYTES_PARAMS		4096
 
-/* Variables */
+#define STRING_TYPE			0
+#define	INT_TYPE			1
+
+/* Enumeration */
+enum {COND_REMOTE=0, COND_ALARM, COND_SABOT, COND_FAIL, COND_EXCL, COND_BYPASS,
+      COND_LOC_TAMPER, COND_LOC_POWERFAIL, COND_LOC_BATTFAIL};
+
+/* Type definition */
 typedef struct{
     int addr1;
     int addr2;
@@ -52,12 +59,24 @@ typedef struct{
 	char passphrase[64];			/* for Tecnofire only */
 	unsigned int registerDimension;	/* for DEF only */
 	unsigned int polling;
+	unsigned char inputBalance;		/* for Saet only */
 }centralParam_t;
+
+typedef struct{
+	unsigned char function;			/* 0=allarme, 1=guasto, 2=esclusione, 3=bypass */
+	char * description;
+	unsigned char allDayActive;
+	unsigned int delay;
+	unsigned char delayType;
+	unsigned char restore;
+	unsigned char restoreCondition;
+}centralInput_t;
 
 typedef struct{
 	char centralType[64];
 	char centralModel[64];
 	centralParam_t centralParam;
+	centralInput_t inputs[8];
 }isiFormValues_t;
 
 typedef struct{
@@ -72,6 +91,7 @@ typedef struct{
 }credentialFormValues_t;
 
 /* Index */
+int searchValIntoForm(char * form, char * param, char * result, unsigned char valType);
 void Log(char *filename, char *content);
 int parseSystemForm(char* form, ipFormValues_t * result);
 int parseCentralForm(char* form, isiFormValues_t * result);
@@ -85,7 +105,40 @@ void b64_encode(char *clrstr, char *b64dst);
 void b64_decode(char *b64src, char *clrdst);
 void fillPage(struct file_data *page, char *pageName);
 
+
 /* Implementation */
+int searchValIntoForm(char * form, char * param, char * result, unsigned char valType)
+{
+	char *strValue, tmpValue[64];
+	unsigned int valueLen, i;	
+
+	strValue = strstr(form,param);
+	if(strValue!=NULL)
+	{
+		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
+			;	
+		for(i=0;strValue[i+strlen(param)]!='&';i++)
+			tmpValue[i] = strValue[i+strlen(param)];
+		tmpValue[i] = '\0';		
+		if(valType == 0)						// is a string
+		{
+			if(result != NULL)					// valid pointer
+			{
+				strncpy(result,tmpValue,strlen(tmpValue));
+				return strlen(tmpValue);
+			}
+			else
+				return -1;						// error
+		}
+		else
+		{
+			return atoi(tmpValue);
+		}
+	}
+
+	return -2;									// not found
+}
+
 void Log(char *filename, char *content)
 {
 	FILE * fd;
@@ -248,7 +301,8 @@ int parseSystemForm(char* form, ipFormValues_t * result)
 
 int parseCentralForm(char* form, isiFormValues_t * result)
 {
-	unsigned int qty = 0, i, nParam=0;
+	unsigned int i, nParam=0;
+	char tmpValue[64];
 	
 	for(i=0; i<strlen(form);i++)
 	{
@@ -257,200 +311,47 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 	}
 	if(nParam)
 		nParam++;
+	
+	searchValIntoForm(form, "centralType=", result->centralType, STRING_TYPE);	
+	searchValIntoForm(form, "centralModel=", result->centralModel, STRING_TYPE);
 
-	printf("\nThere are %d Parameters\n",nParam);
-	
-	char *strValue, tmpValue[64];
-	unsigned char valueLen;
-	
-	strValue = strstr(form,"centralType=");
-	if(strValue!=NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;	
-		for(i=0;strValue[i+strlen("centralType=")]!='&';i++)
-			result->centralType[i] = strValue[i+strlen("centralType=")];
-		result->centralType[i] = '\0';
-	}
-	strValue = strstr(form,"centralModel=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;	
-		for(i=0;strValue[i+strlen("centralModel=")]!='&';i++)
-			result->centralModel[i] = strValue[i+strlen("centralModel=")];
-		result->centralModel[i] = '\0';
-	}
-	
 	if(strncmp(result->centralType,"notifier",strlen("notifier"))==0)			/* Consider only notifier params */
 	{
-		strValue = strstr(form,"notifierId=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("notifierId="),valueLen);
-			result->centralParam.address = atoi(tmpValue);			
-		}
-		strValue = strstr(form,"notifierPolling=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("notifierPolling="),valueLen);
-			result->centralParam.polling = atoi(tmpValue);
-		}
-		strValue = strstr(form,"notifierConnection=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;	
-			for(i=0;strValue[i+strlen("notifierConnection=")]!='&';i++)
-				result->centralParam.connection[i] = strValue[i+strlen("notifierConnection=")];
-			result->centralParam.connection[i] = '\0';		
-		}
-		strValue = strstr(form,"isiPort=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;	
-			for(i=0;strValue[i+strlen("isiPort=")]!='&';i++)
-				tmpValue[i] = strValue[i+strlen("isiPort=")];
-			tmpValue[i] = '\0';		
-			if(strncmp(tmpValue,"com1",strlen("com1"))==0)
-				result->centralParam.serialPort = 0;
-			else if(strncmp(tmpValue,"com2",strlen("com2"))==0)
-				result->centralParam.serialPort = 1;
-			else if(strncmp(tmpValue,"usb1",strlen("usb1"))==0)
-				result->centralParam.serialPort = 2;
-			else if(strncmp(tmpValue,"usb2",strlen("usb2"))==0)
-				result->centralParam.serialPort = 3;
-			else if(strncmp(tmpValue,"usb3",strlen("usb3"))==0)
-				result->centralParam.serialPort = 4;
-		}
-		strValue = strstr(form,"notifierIP1=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("notifierIP1="),valueLen);
-			result->centralParam.ip.addr1 = atoi(tmpValue);
-		}
-		strValue = strstr(form,"notifierIP2=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("notifierIP2="),valueLen);
-			result->centralParam.ip.addr2 = atoi(tmpValue);
-		}
-		strValue = strstr(form,"notifierIP3=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("notifierIP3="),valueLen);
-			result->centralParam.ip.addr3 = atoi(tmpValue);
-		}
-		strValue = strstr(form,"notifierIP4=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("notifierIP4="),valueLen);			
-			result->centralParam.ip.addr4 = atoi(tmpValue);			
-		}
-		strValue = strstr(form,"notifierPort=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("notifierPort="),valueLen);
-			result->centralParam.networkPort = atoi(tmpValue);
-		}
-		strValue = strstr(form,"notifierBaudrate=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("notifierBaudrate="),valueLen);
-			result->centralParam.baudrate = atoi(tmpValue);
-		}
-		strValue = strstr(form,"notifierNumeration=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("notifierNumeration="),valueLen);		
-			for(i=0;strValue[i+strlen("notifierNumeration=")]!='&';i++)
-				tmpValue[i] = strValue[i+strlen("notifierNumeration=")];
-			tmpValue[i] = '\0';
-			if(strncmp(tmpValue,"standard",strlen("standard"))==0)
-				result->centralParam.numeration = 0;			
-			else if(strncmp(tmpValue,"stdRiass",strlen("stdRiass"))==0)
-				result->centralParam.numeration = 1;									
-		}
+		result->centralParam.address = searchValIntoForm(form, "notifierId=", NULL, INT_TYPE);
+		result->centralParam.polling = searchValIntoForm(form, "notifierPolling=", NULL, INT_TYPE);
+		searchValIntoForm(form, "notifierConnection=", result->centralParam.connection, STRING_TYPE);
+		searchValIntoForm(form, "isiPort=", tmpValue, STRING_TYPE);
+		if(strncmp(tmpValue,"com1",strlen("com1"))==0)
+			result->centralParam.serialPort = 0;
+		else if(strncmp(tmpValue,"com2",strlen("com2"))==0)
+			result->centralParam.serialPort = 1;
+		else if(strncmp(tmpValue,"usb1",strlen("usb1"))==0)
+			result->centralParam.serialPort = 2;
+		else if(strncmp(tmpValue,"usb2",strlen("usb2"))==0)
+			result->centralParam.serialPort = 3;
+		else if(strncmp(tmpValue,"usb3",strlen("usb3"))==0)
+			result->centralParam.serialPort = 4;
+		result->centralParam.ip.addr1 = searchValIntoForm(form, "notifierIP1=", NULL, INT_TYPE);
+		result->centralParam.ip.addr2 = searchValIntoForm(form, "notifierIP2=", NULL, INT_TYPE);
+		result->centralParam.ip.addr3 = searchValIntoForm(form, "notifierIP3=", NULL, INT_TYPE);
+		result->centralParam.ip.addr4 = searchValIntoForm(form, "notifierIP4=", NULL, INT_TYPE);
+		result->centralParam.networkPort = searchValIntoForm(form, "notifierPort=", NULL, INT_TYPE);	
+		result->centralParam.baudrate = searchValIntoForm(form, "notifierBaudrate=", NULL, INT_TYPE);
+		searchValIntoForm(form, "notifierNumeration=", tmpValue, STRING_TYPE);
+		if(strncmp(tmpValue,"standard",strlen("standard"))==0)
+			result->centralParam.numeration = 0;			
+		else if(strncmp(tmpValue,"stdRiass",strlen("stdRiass"))==0)
+			result->centralParam.numeration = 1;									
 	}
 	else if(strncmp(result->centralType,"tecnofire",strlen("tecnofire"))==0)	/* Consider only tecnofire params */
 	{
-		strValue = strstr(form,"tecnofireCode=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;	
-			for(i=0;strValue[i+strlen("tecnofireCode=")]!='&';i++)
-				result->centralParam.code[i] = strValue[i+strlen("tecnofireCode=")];
-			result->centralParam.code[i] = '\0';
-		}
-		strValue = strstr(form,"tecnofireIP1=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("tecnofireIP1="),valueLen);
-			result->centralParam.ip.addr1 = atoi(tmpValue);
-		}
-		strValue = strstr(form,"tecnofireIP2=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("tecnofireIP2="),valueLen);
-			result->centralParam.ip.addr2 = atoi(tmpValue);
-		}
-		strValue = strstr(form,"tecnofireIP3=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("tecnofireIP3="),valueLen);
-			result->centralParam.ip.addr3 = atoi(tmpValue);
-		}
-		strValue = strstr(form,"tecnofireIP4=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("tecnofireIP4="),valueLen);
-			result->centralParam.ip.addr4 = atoi(tmpValue);
-		}
-		strValue = strstr(form,"tecnofirePort=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("tecnofirePort="),valueLen);
-			result->centralParam.networkPort = atoi(tmpValue);
-		}
-		strValue = strstr(form,"tecnofirePass=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;	
-			for(i=0;strValue[i+strlen("tecnofirePass=")]!='&';i++)
-				result->centralParam.passphrase[i] = strValue[i+strlen("tecnofirePass=")];
-			result->centralParam.passphrase[i] = '\0';
-		}
+		searchValIntoForm(form, "tecnofireCode=", result->centralParam.code, STRING_TYPE);
+		result->centralParam.ip.addr1 = searchValIntoForm(form, "tecnofireIP1=", NULL, INT_TYPE);
+		result->centralParam.ip.addr2 = searchValIntoForm(form, "tecnofireIP2=", NULL, INT_TYPE);
+		result->centralParam.ip.addr3 = searchValIntoForm(form, "tecnofireIP3=", NULL, INT_TYPE);
+		result->centralParam.ip.addr4 = searchValIntoForm(form, "tecnofireIP4=", NULL, INT_TYPE);
+		result->centralParam.networkPort = searchValIntoForm(form, "tecnofirePort=", NULL, INT_TYPE);	
+		searchValIntoForm(form, "tecnofirePass=", result->centralParam.passphrase, STRING_TYPE);
 	}
 	else if(strncmp(result->centralType,"honeywell",strlen("honeywell"))==0)	/* Consider only honeywell params */
 	{
@@ -458,65 +359,16 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 	}
 	else if(strncmp(result->centralType,"def",strlen("def"))==0)				/* Consider only def params */
 	{
-		strValue = strstr(form,"defPlant=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("defPlant="),valueLen);		
-			result->centralParam.plant = atoi(tmpValue);
-		}
-		strValue = strstr(form,"defId=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("defId="),valueLen);		
-			result->centralParam.address = atoi(tmpValue);			
-		}
-		strValue = strstr(form,"defBaudrate=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("defBaudrate="),valueLen);		
-			result->centralParam.baudrate = atoi(tmpValue);
-		}
-		strValue = strstr(form,"defMaxReg=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("defMaxReg="),valueLen);
-			result->centralParam.registerDimension = atoi(tmpValue);
-		}
-		strValue = strstr(form,"defPolling=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("defPolling="),valueLen);
-			result->centralParam.polling = atoi(tmpValue);
-		}
+		result->centralParam.plant = searchValIntoForm(form, "defPlant=", NULL, INT_TYPE);
+		result->centralParam.address = searchValIntoForm(form, "defId=", NULL, INT_TYPE);
+		result->centralParam.baudrate = searchValIntoForm(form, "defBaudrate=", NULL, INT_TYPE);
+		result->centralParam.registerDimension = searchValIntoForm(form, "defMaxReg=", NULL, INT_TYPE);
+		result->centralParam.polling = searchValIntoForm(form, "defPolling=", NULL, INT_TYPE);
 	}
 	else if(strncmp(result->centralType,"detfire",strlen("detfire"))==0)		/* Consider only detfire params */
 	{
-		strValue = strstr(form,"detfireAdd=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("detfireAdd="),valueLen);
-			result->centralParam.address = atoi(tmpValue);
-		}
-		strValue = strstr(form,"detfireBaudrate=");
-		if(strValue != NULL)
-		{
-			for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-				;
-			strncpy(tmpValue,strValue+strlen("detfireBaudrate="),valueLen);		
-			result->centralParam.baudrate = atoi(tmpValue);			
-		}
+		result->centralParam.address = searchValIntoForm(form, "detfireAdd=", NULL, INT_TYPE);
+		result->centralParam.baudrate = searchValIntoForm(form, "detfireBaudrate=", NULL, INT_TYPE);		
 	}
 
 	char logString[256];
@@ -539,7 +391,7 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 	printf(logString);
 	Log("/tmp/webserver.log",logString);
 
-    return qty;   
+    return nParam;   
 }
 
 int parseSupervisorForm(char* form, svFormValues_t * result)
