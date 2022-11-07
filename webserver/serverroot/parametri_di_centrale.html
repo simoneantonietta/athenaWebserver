@@ -68,6 +68,8 @@
         {
           case 'notifier':
               document.getElementById("centralType").style.backgroundImage = "url(/images/notifier_low.png)";
+              document.getElementById("centralModel").style.display = "initial";
+              document.getElementById("centralModelLabel").style.display = "initial";
               document.getElementById("centralModel").value = "AM2000N";
               document.getElementById("AM2000N").style.display = "initial";
               document.getElementById("AM4000").style.display = "initial";
@@ -90,9 +92,12 @@
               document.getElementById("honeywellParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
+              document.getElementById("saetParagraph").style.display = "none";
               break;
           case 'tecnofire':
               document.getElementById("centralType").style.backgroundImage = "url(/images/tecnofire_low.png)";
+              document.getElementById("centralModel").style.display = "initial";
+              document.getElementById("centralModelLabel").style.display = "initial";
               document.getElementById("centralModel").value = "TFA1-298";
               document.getElementById("AM2000N").style.display = "none";
               document.getElementById("AM4000").style.display = "none";
@@ -115,9 +120,12 @@
               document.getElementById("honeywellParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
+              document.getElementById("saetParagraph").style.display = "none";
               break;
           case 'honeywell':
               document.getElementById("centralType").style.backgroundImage = "url(/images/honeywell_low.png)";
+              document.getElementById("centralModel").style.display = "initial";
+              document.getElementById("centralModelLabel").style.display = "initial";
               document.getElementById("centralModel").value = "XLS200";
               document.getElementById("AM2000N").style.display = "none";
               document.getElementById("AM4000").style.display = "none";
@@ -140,9 +148,12 @@
               document.getElementById("honeywellParagraph").style.display = "initial";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
+              document.getElementById("saetParagraph").style.display = "none";
               break;
           case 'def':
               document.getElementById("centralType").style.backgroundImage = "url(/images/def_low.png)";
+              document.getElementById("centralModel").style.display = "initial";
+              document.getElementById("centralModelLabel").style.display = "initial";
               document.getElementById("centralModel").value = "CA3000P-NE";
               document.getElementById("AM2000N").style.display = "none";
               document.getElementById("AM4000").style.display = "none";
@@ -165,9 +176,12 @@
               document.getElementById("honeywellParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "initial";
               document.getElementById("detfireParagraph").style.display = "none";              
+              document.getElementById("saetParagraph").style.display = "none";
               break;
           case 'detfire':
               document.getElementById("centralType").style.backgroundImage = "url(/images/detfire_low.png)";
+              document.getElementById("centralModel").style.display = "initial";
+              document.getElementById("centralModelLabel").style.display = "initial";
               document.getElementById("centralModel").value = "DF88";
               document.getElementById("AM2000N").style.display = "none";
               document.getElementById("AM4000").style.display = "none";
@@ -190,16 +204,49 @@
               document.getElementById("honeywellParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "initial";
+              document.getElementById("saetParagraph").style.display = "none";
               break;
           case 'saet':
               document.getElementById("centralType").style.backgroundImage = "url(/images/saet_low.png)";
               document.getElementById("centralModel").style.display = "none";
+              document.getElementById("centralModelLabel").style.display = "none";
               document.getElementById("notifierParagraph").style.display = "none";
               document.getElementById("tecnofireParagraph").style.display = "none";
               document.getElementById("honeywellParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
+              document.getElementById("saetParagraph").style.display = "initial";
               break;
+        }
+      }
+      function showInputSetting(input){
+        var inputNumber = input.id.match(/\d/g);             // search number into string
+        inputNumber = inputNumber.join("");
+        var inputDescString = "desc" + inputNumber;
+        var input24hString = "24h" + inputNumber;
+        var inputDelayString = "delay" + inputNumber;
+        var inputDelayTypeString = "delayType" + inputNumber;
+        var inputRestoreString = "restore" + inputNumber;
+        var inputRestoreConditionString = "restoreCondition" + inputNumber;              
+        if(input.value == "3")            // Bypass
+        {
+          console.log("Bypass");          
+          document.getElementById(inputDescString).style.display = "none";
+          document.getElementById(input24hString).style.display = "none";
+          document.getElementById(inputDelayString).style.display = "none";
+          document.getElementById(inputDelayTypeString).style.display = "none";
+          document.getElementById(inputRestoreString).style.display = "none";
+          document.getElementById(inputRestoreConditionString).style.display = "none";
+        }
+        else
+        {
+          console.log("Non Bypass");
+          document.getElementById(inputDescString).style.display = "table-row";
+          document.getElementById(input24hString).style.display = "table-row";
+          document.getElementById(inputDelayString).style.display = "table-row";
+          document.getElementById(inputDelayTypeString).style.display = "table-row";
+          document.getElementById(inputRestoreString).style.display = "table-row";
+          document.getElementById(inputRestoreConditionString).style.display = "table-row";
         }
       }
     </script>     
@@ -245,7 +292,7 @@
             </th>           
             <th class="central-col"></th> 
             <th class="central-col">
-              <label for="centralModel">Modello Centrale</label>
+              <label for="centralModel" name="centralModelLabel" id="centralModelLabel">Modello Centrale</label>
             </th>
             <th class="central-col">
               <select name="centralModel" id="centralModel">
@@ -363,8 +410,7 @@
               </th>
               <th>
                 <select class="fullWidth" name="notifierNumeration" id="notifierNumeration">
-                  <option value="standard">Standard</option>
-                  <option value="vecchia">Vecchia</option>
+                  <option value="standard">Standard</option>                  
                   <option value="stdRiass">Standard Riassuntiva</option>
                 </select>
               </th>
@@ -500,7 +546,7 @@
                 <label >Indirizzo</label>
               </th>
               <th>
-                <input class="tecnofireInput" type="number" name="detfireAdd" id="detfireAdd">
+                <input class="tecnofireInput" type="number" name="detfireAdd" id="detfireAdd" value="aaa">
               </th>                    
             </tr> 
             <tr>
@@ -516,6 +562,770 @@
                 </select>
               </th>
             </tr>   
+          </table>
+        </section>
+        <section name="saetParagraph" id="saetParagraph">
+          <table class="ip" name="saetParam" id="saetParam">
+            <tr>
+              <th class="central-col">Parametri Centrale</th>
+            </tr>               
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Bilanciamento</label>
+              </th>
+              <th class="central-col">
+                <select>
+                  <option value="onOffNA">On/Off N.A.</option>
+                  <option value="onOffNC">On/Off N.C.</option>                  
+                  <option value="triple">Triplo</option>
+                </select>
+              </th>                    
+            </tr> 
+            <!-- INGRESSO 1 -->
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Ingresso 1</label>&emsp;&emsp;&emsp;
+              </th>
+              <th class="central-col">
+                <select name="in1Function" id="in1Function" onchange="showInputSetting(this)">
+                  <option value="0">Allarme</option>
+                  <option value="1">Guasto</option>
+                  <option value="2">Esclusione</option>
+                  <option value="3">ByPass</option>
+                </select>
+              </th>
+            </tr>
+            <tr name="desc1" id="desc1">
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="first-col">
+                  <label>Descrizione</label>
+                </th>                
+                <th class="central-col">
+                  <input type="text" class="cell-input" name="in1Desc" id="in1Desc">
+                </th>
+            </tr>   
+            <tr name="24h1" id="24h1">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>24h</label>
+              </th>                
+              <th class="central-col">
+                <select name="in1enable24h" id="in1enable24h">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                  
+              </th>
+            </tr>   
+            <tr name="delay1" id="delay1">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <input type="number" min="0" max="3600" name="in1Delay" id="in1Delay">  
+              </th>
+            </tr>   
+            <tr name="delayType1" id="delayType1">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Tipo di Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <select name="in1DelayType" id="in1DelayType">
+                  <option value="pulse">Impulsivo</option>
+                  <option value="continuous">Continuo</option>
+                </select>                  
+              </th>
+            </tr>  
+            <tr name="restore1" id="restore1">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Invio Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in1Restore" id="in1Restore">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                                  
+              </th>
+            </tr>   
+            <tr name="restoreCondition1" id="restoreCondition1">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Condizione Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in1RestoreCondition" id="in1RestoreCondition">
+                  <option value="input">Ingresso</option>
+                  <option value="bypass">Bypass</option>
+                </select> 
+              </th>
+            </tr>               
+            <!-- INGRESSO 2 -->
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Ingresso 2</label>&emsp;&emsp;&emsp;
+              </th>
+              <th class="central-col">
+                <select name="in2Function" id="in2Function" onchange="showInputSetting(this)">
+                  <option value="0">Allarme</option>
+                  <option value="1">Guasto</option>
+                  <option value="2">Esclusione</option>
+                  <option value="3">ByPass</option>
+                </select>
+              </th>
+            </tr>
+            <tr name="desc2" id="desc2">
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="first-col">
+                  <label>Descrizione</label>
+                </th>                
+                <th class="central-col">
+                  <input type="text" class="cell-input" name="in2Desc" id="in2Desc">
+                </th>
+            </tr>   
+            <tr name="24h2" id="24h2">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>24h</label>
+              </th>                
+              <th class="central-col">
+                <select name="in2enable24h" id="in2enable24h">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                  
+              </th>
+            </tr>   
+            <tr name="delay2" id="delay2">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <input type="number" min="0" max="3600" name="in2Delay" id="in2Delay">  
+              </th>
+            </tr>   
+            <tr name="delayType2" id="delayType2">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Tipo di Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <select name="in2DelayType" id="in2DelayType">
+                  <option value="pulse">Impulsivo</option>
+                  <option value="continuous">Continuo</option>
+                </select>                  
+              </th>
+            </tr>  
+            <tr name="restore2" id="restore2">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Invio Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in2Restore" id="in2Restore">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                                  
+              </th>
+            </tr>   
+            <tr name="restoreCondition2" id="restoreCondition2">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Condizione Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in2RestoreCondition" id="in2RestoreCondition">
+                  <option value="input">Ingresso</option>
+                  <option value="bypass">Bypass</option>
+                </select> 
+              </th>
+            </tr>  
+            <!-- INGRESSO 3 -->
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Ingresso 3</label>&emsp;&emsp;&emsp;
+              </th>
+              <th class="central-col">
+                <select name="in3Function" id="in3Function" onchange="showInputSetting(this)">
+                  <option value="0">Allarme</option>
+                  <option value="1">Guasto</option>
+                  <option value="2">Esclusione</option>
+                  <option value="3">ByPass</option>
+                </select>
+              </th>
+            </tr>
+            <tr name="desc3" id="desc3">
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="first-col">
+                  <label>Descrizione</label>
+                </th>                
+                <th class="central-col">
+                  <input type="text" class="cell-input" name="in3Desc" id="in3Desc">
+                </th>
+            </tr>   
+            <tr name="24h3" id="24h3">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>24h</label>
+              </th>                
+              <th class="central-col">
+                <select name="in3enable24h" id="in3enable24h">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                  
+              </th>
+            </tr>   
+            <tr name="delay3" id="delay3">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <input type="number" min="0" max="3600" name="in3Delay" id="in3Delay">  
+              </th>
+            </tr>   
+            <tr name="delayType3" id="delayType3">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Tipo di Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <select name="in3DelayType" id="in3DelayType">
+                  <option value="pulse">Impulsivo</option>
+                  <option value="continuous">Continuo</option>
+                </select>                  
+              </th>
+            </tr>  
+            <tr name="restore3" id="restore3">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Invio Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in3Restore" id="in3Restore">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                                  
+              </th>
+            </tr>   
+            <tr name="restoreCondition3" id="restoreCondition3">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Condizione Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in3RestoreCondition" id="in3RestoreCondition">
+                  <option value="input">Ingresso</option>
+                  <option value="bypass">Bypass</option>
+                </select> 
+              </th>
+            </tr> 
+            <!-- INGRESSO 4 -->
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Ingresso 4</label>&emsp;&emsp;&emsp;
+              </th>
+              <th class="central-col">
+                <select name="in4Function" id="in4Function" onchange="showInputSetting(this)">
+                  <option value="0">Allarme</option>
+                  <option value="1">Guasto</option>
+                  <option value="2">Esclusione</option>
+                  <option value="3">ByPass</option>
+                </select>
+              </th>
+            </tr>
+            <tr name="desc4" id="desc4">
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="first-col">
+                  <label>Descrizione</label>
+                </th>                
+                <th class="central-col">
+                  <input type="text" class="cell-input" name="in4Desc" id="in4Desc">
+                </th>
+            </tr>   
+            <tr name="24h4" id="24h4">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>24h</label>
+              </th>                
+              <th class="central-col">
+                <select name="in4enable24h" id="in4enable24h">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                  
+              </th>
+            </tr>   
+            <tr name="delay4" id="delay4">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <input type="number" min="0" max="3600" name="in4Delay" id="in4Delay">  
+              </th>
+            </tr>   
+            <tr name="delayType4" id="delayType4">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Tipo di Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <select name="in4DelayType" id="in4DelayType">
+                  <option value="pulse">Impulsivo</option>
+                  <option value="continuous">Continuo</option>
+                </select>                  
+              </th>
+            </tr>  
+            <tr name="restore4" id="restore4">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Invio Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in4Restore" id="in4Restore">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                                  
+              </th>
+            </tr>   
+            <tr name="restoreCondition4" id="restoreCondition4">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Condizione Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in4RestoreCondition" id="in4RestoreCondition">
+                  <option value="input">Ingresso</option>
+                  <option value="bypass">Bypass</option>
+                </select> 
+              </th>
+            </tr> 
+            <!-- INGRESSO 5 -->
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Ingresso 5</label>&emsp;&emsp;&emsp;
+              </th>
+              <th class="central-col">
+                <select name="in5Function" id="in5Function" onchange="showInputSetting(this)">
+                  <option value="0">Allarme</option>
+                  <option value="1">Guasto</option>
+                  <option value="2">Esclusione</option>
+                  <option value="3">ByPass</option>
+                </select>
+              </th>
+            </tr>
+            <tr name="desc5" id="desc5">
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="first-col">
+                  <label>Descrizione</label>
+                </th>                
+                <th class="central-col">
+                  <input type="text" class="cell-input" name="in5Desc" id="in5Desc">
+                </th>
+            </tr>   
+            <tr name="24h5" id="24h5">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>24h</label>
+              </th>                
+              <th class="central-col">
+                <select name="in5enable24h" id="in5enable24h">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                  
+              </th>
+            </tr>   
+            <tr name="delay5" id="delay5">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <input type="number" min="0" max="3600" name="in5Delay" id="in5Delay">  
+              </th>
+            </tr>   
+            <tr name="delayType5" id="delayType5">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Tipo di Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <select name="in5DelayType" id="in5DelayType">
+                  <option value="pulse">Impulsivo</option>
+                  <option value="continuous">Continuo</option>
+                </select>                  
+              </th>
+            </tr>  
+            <tr name="restore5" id="restore5">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Invio Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in5Restore" id="in5Restore">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                                  
+              </th>
+            </tr>   
+            <tr name="restoreCondition5" id="restoreCondition5">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Condizione Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in5RestoreCondition" id="in5RestoreCondition">
+                  <option value="input">Ingresso</option>
+                  <option value="bypass">Bypass</option>
+                </select> 
+              </th>
+            </tr> 
+            <!-- INGRESSO 6 -->
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Ingresso 6</label>&emsp;&emsp;&emsp;
+              </th>
+              <th class="central-col">
+                <select name="in6Function" id="in6Function" onchange="showInputSetting(this)">
+                  <option value="0">Allarme</option>
+                  <option value="1">Guasto</option>
+                  <option value="2">Esclusione</option>
+                  <option value="3">ByPass</option>
+                </select>
+              </th>
+            </tr>
+            <tr name="desc6" id="desc6">
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="first-col">
+                  <label>Descrizione</label>
+                </th>                
+                <th class="central-col">
+                  <input type="text" class="cell-input" name="in6Desc" id="in6Desc">
+                </th>
+            </tr>   
+            <tr name="24h6" id="24h6">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>24h</label>
+              </th>                
+              <th class="central-col">
+                <select name="in6enable24h" id="in6enable24h">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                  
+              </th>
+            </tr>   
+            <tr name="delay6" id="delay6">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <input type="number" min="0" max="3600" name="in6Delay" id="in6Delay">  
+              </th>
+            </tr>   
+            <tr name="delayType6" id="delayType6">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Tipo di Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <select name="in6DelayType" id="in6DelayType">
+                  <option value="pulse">Impulsivo</option>
+                  <option value="continuous">Continuo</option>
+                </select>                  
+              </th>
+            </tr>  
+            <tr name="restore6" id="restore6">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Invio Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in6Restore" id="in6Restore">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                                  
+              </th>
+            </tr>   
+            <tr name="restoreCondition6" id="restoreCondition6">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Condizione Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in6RestoreCondition" id="in6RestoreCondition">
+                  <option value="input">Ingresso</option>
+                  <option value="bypass">Bypass</option>
+                </select> 
+              </th>
+            </tr> 
+            <!-- INGRESSO 7 -->
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Ingresso 7</label>&emsp;&emsp;&emsp;
+              </th>
+              <th class="central-col">
+                <select name="in7Function" id="in7Function" onchange="showInputSetting(this)">
+                  <option value="0">Allarme</option>
+                  <option value="1">Guasto</option>
+                  <option value="2">Esclusione</option>
+                  <option value="3">ByPass</option>
+                </select>
+              </th>
+            </tr>
+            <tr name="desc7" id="desc7">
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="first-col">
+                  <label>Descrizione</label>
+                </th>                
+                <th class="central-col">
+                  <input type="text" class="cell-input" name="in7Desc" id="in7Desc">
+                </th>
+            </tr>   
+            <tr name="24h7" id="24h7">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>24h</label>
+              </th>                
+              <th class="central-col">
+                <select name="in7enable24h" id="in7enable24h">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                  
+              </th>
+            </tr>   
+            <tr name="delay7" id="delay7">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <input type="number" min="0" max="3600" name="in7Delay" id="in7Delay">  
+              </th>
+            </tr>   
+            <tr name="delayType7" id="delayType7">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Tipo di Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <select name="in7DelayType" id="in7DelayType">
+                  <option value="pulse">Impulsivo</option>
+                  <option value="continuous">Continuo</option>
+                </select>                  
+              </th>
+            </tr>  
+            <tr name="restore7" id="restore7">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Invio Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in7Restore" id="in7Restore">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                                  
+              </th>
+            </tr>   
+            <tr name="restoreCondition7" id="restoreCondition7">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Condizione Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in7RestoreCondition" id="in7RestoreCondition">
+                  <option value="input">Ingresso</option>
+                  <option value="bypass">Bypass</option>
+                </select> 
+              </th>
+            </tr> 
+            <!-- INGRESSO 8 -->
+            <tr>
+              <th class="central-col"></th>       
+              <th class="central-col">
+                <label >Ingresso 8</label>&emsp;&emsp;&emsp;
+              </th>
+              <th class="central-col">
+                <select name="in8Function" id="in8Function" onchange="showInputSetting(this)">
+                  <option value="0">Allarme</option>
+                  <option value="1">Guasto</option>
+                  <option value="2">Esclusione</option>
+                  <option value="3">ByPass</option>
+                </select>
+              </th>
+            </tr>
+            <tr name="desc8" id="desc8">
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="central-col"></th>
+                <th class="first-col">
+                  <label>Descrizione</label>
+                </th>                
+                <th class="central-col">
+                  <input type="text" class="cell-input" name="in8Desc" id="in8Desc">
+                </th>
+            </tr>   
+            <tr name="24h8" id="24h8">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>24h</label>
+              </th>                
+              <th class="central-col">
+                <select name="in8enable24h" id="in8enable24h">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                  
+              </th>
+            </tr>   
+            <tr name="delay8" id="delay8">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <input type="number" min="0" max="3600" name="in8Delay" id="in8Delay">  
+              </th>
+            </tr>   
+            <tr name="delayType8" id="delayType8">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Tipo di Ritardo</label>
+              </th>                
+              <th class="central-col">
+                <select name="in8DelayType" id="in8DelayType">
+                  <option value="pulse">Impulsivo</option>
+                  <option value="continuous">Continuo</option>
+                </select>                  
+              </th>
+            </tr>  
+            <tr name="restore8" id="restore8">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Invio Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in8Restore" id="in8Restore">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>                                  
+              </th>
+            </tr>   
+            <tr name="restoreCondition8" id="restoreCondition8">
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="central-col"></th>
+              <th class="first-col">
+                <label>Condizione Ripristino</label>
+              </th>                
+              <th class="central-col">
+                <select name="in8RestoreCondition" id="in8RestoreCondition">
+                  <option value="input">Ingresso</option>
+                  <option value="bypass">Bypass</option>
+                </select> 
+              </th>
+            </tr> 
           </table>
         </section>
         <br><br><br><br><br><br>

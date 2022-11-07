@@ -386,11 +386,9 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 				tmpValue[i] = strValue[i+strlen("notifierNumeration=")];
 			tmpValue[i] = '\0';
 			if(strncmp(tmpValue,"standard",strlen("standard"))==0)
-				result->centralParam.numeration = 0;
-			else if(strncmp(tmpValue,"vecchia",strlen("vecchia"))==0)
-				result->centralParam.numeration = 1;
+				result->centralParam.numeration = 0;			
 			else if(strncmp(tmpValue,"stdRiass",strlen("stdRiass"))==0)
-				result->centralParam.numeration = 2;									
+				result->centralParam.numeration = 1;									
 		}
 	}
 	else if(strncmp(result->centralType,"tecnofire",strlen("tecnofire"))==0)	/* Consider only tecnofire params */
