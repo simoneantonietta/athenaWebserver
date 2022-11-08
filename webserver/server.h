@@ -27,6 +27,13 @@
 #define STRING_TYPE			0
 #define	INT_TYPE			1
 
+#define ON 					1
+#define OFF					0
+#define INPUT 				1
+#define BYPASS 				0
+#define PULSE				1
+#define CONTINUOUS 			0
+
 /* Enumeration */
 enum {COND_REMOTE=0, COND_ALARM, COND_SABOT, COND_FAIL, COND_EXCL, COND_BYPASS,
       COND_LOC_TAMPER, COND_LOC_POWERFAIL, COND_LOC_BATTFAIL};
@@ -64,7 +71,7 @@ typedef struct{
 
 typedef struct{
 	unsigned char function;			/* 0=allarme, 1=guasto, 2=esclusione, 3=bypass */
-	char * description;
+	char description[64];
 	unsigned char allDayActive;
 	unsigned int delay;
 	unsigned char delayType;
@@ -84,10 +91,10 @@ typedef struct{
 }svFormValues_t;
 
 typedef struct{
-	char * username;
-	char * oldPassword;
-	char * newPassword;
-	char * newPassword2;
+	char username[64];
+	char oldPassword[64];
+	char newPassword[64];
+	char newPassword2[64];
 }credentialFormValues_t;
 
 /* Index */
@@ -116,19 +123,15 @@ int searchValIntoForm(char * form, char * param, char * result, unsigned char va
 	if(strValue!=NULL)
 	{
 		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;	
-		for(i=0;strValue[i+strlen(param)]!='&';i++)
+			;			
+		for(i=0;(strValue[i+strlen(param)]!='&') && (valueLen<strlen(strValue));i++)
 			tmpValue[i] = strValue[i+strlen(param)];
 		tmpValue[i] = '\0';		
 		if(valType == 0)						// is a string
-		{
-			if(result == NULL)					// not valid pointer
-			{
-				result = malloc(strlen(tmpValue));
-			}
-			strncpy(result,tmpValue,strlen(tmpValue));
-			result[strlen(tmpValue)] = '\0';
-			return strlen(tmpValue);
+		{						
+			strncpy(result,tmpValue,strlen(tmpValue));		
+			result[strlen(tmpValue)] = '\0';			
+			return strlen(result);
 		}
 		else
 		{
@@ -136,7 +139,7 @@ int searchValIntoForm(char * form, char * param, char * result, unsigned char va
 		}
 	}
 
-	return -2;									// not found
+	return -1;									// not found
 }
 
 void Log(char *filename, char *content)
@@ -278,6 +281,49 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 	{
 		result->centralParam.address = searchValIntoForm(form, "detfireAdd=", NULL, INT_TYPE);
 		result->centralParam.baudrate = searchValIntoForm(form, "detfireBaudrate=", NULL, INT_TYPE);		
+	}
+	else if(strncmp(result->centralType,"saet",strlen("saet"))==0)			/* Consider only saet params */
+	{
+		searchValIntoForm(form, "balanceType=", tmpValue, STRING_TYPE);		
+		if(strncmp(tmpValue,"onOffNA",strlen("onOffNA"))==0)
+			result->centralParam.inputBalance = 2;
+		else if(strncmp(tmpValue,"onOffNC",strlen("onOffNC"))==0)
+			result->centralParam.inputBalance = 3;
+		else if(strncmp(tmpValue,"triple",strlen("triple"))==0)
+			result->centralParam.inputBalance = 1;
+		for(i=0;i<8;i++)
+		{
+			sprintf(tmpValue,"in%dFunction=",i+1);
+			result->inputs[i].function = searchValIntoForm(form, tmpValue, NULL, INT_TYPE);			
+			sprintf(tmpValue,"in%dDesc=",i+1);
+			searchValIntoForm(form, tmpValue, result->inputs[i].description, STRING_TYPE);
+			sprintf(tmpValue,"in%denable24h=",i+1);
+			searchValIntoForm(form, tmpValue, tmpValue, STRING_TYPE);
+			if(strcmp(tmpValue,"on")==0)
+				result->inputs[i].allDayActive = ON;
+			else
+				result->inputs[i].allDayActive = OFF;
+			sprintf(tmpValue,"in%dDelay=",i+1);
+			result->inputs[i].delay = searchValIntoForm(form, tmpValue, NULL, INT_TYPE);
+			sprintf(tmpValue,"in%dDelayType=",i+1);
+			searchValIntoForm(form, tmpValue, tmpValue, STRING_TYPE);			
+			if(strcmp(tmpValue,"pulse")==0)
+				result->inputs[i].delayType = PULSE;
+			else
+				result->inputs[i].delayType = CONTINUOUS;
+			sprintf(tmpValue,"in%dRestore=",i+1);
+			searchValIntoForm(form, tmpValue, tmpValue, STRING_TYPE);
+			if(strcmp(tmpValue,"on")==0)			
+				result->inputs[i].restore = ON;
+			else
+				result->inputs[i].restore = OFF;
+			sprintf(tmpValue,"in%dRestoreCondition=",i+1);
+			searchValIntoForm(form, tmpValue, tmpValue, STRING_TYPE);
+			if(strcmp(tmpValue,"input")==0)			
+				result->inputs[i].restoreCondition = INPUT;
+			else
+				result->inputs[i].restoreCondition = BYPASS;	
+		}		
 	}
 
 	char logString[256];
@@ -430,12 +476,18 @@ void changeIsiConf(isiFormValues_t * isiParam)
 	fclose(fd);
 
 
+printf("Entro in changeIsiConf\n");
 
 	//fd = fopen("/isi/isi.conf","w+");
 	fd = fopen("/home/utente/isi.conf","w+");
 	fprintf(fd,isiconf);
 
-	if(strcmp(isiParam->centralType,"saet")!=0)				// not for Saet
+	if(strcmp(isiParam->centralType,"saet")==0)				
+	{
+		sprintf(tmpString,"Balance=%d\n\n",isiParam->centralParam.inputBalance);		
+		fprintf(fd,tmpString);
+	}
+	else
 	{
 		sprintf(tmpString,"# Centrale %s\n[2]\n",isiParam->centralType);		
 		fprintf(fd,tmpString);
@@ -459,6 +511,7 @@ void changeIsiConf(isiFormValues_t * isiParam)
 
 		}
 	}
+
 	fclose(fd);
 	system("killall -9 isi");
 }
@@ -499,11 +552,6 @@ int changeCredential(credentialFormValues_t * credentialParam)
 		fclose(fd);
 		returnVal = 1;
 	}
-
-	free(credentialParam->username);
-	free(credentialParam->oldPassword);
-	free(credentialParam->newPassword);
-	free(credentialParam->newPassword2);
 
 	return returnVal;
 }
