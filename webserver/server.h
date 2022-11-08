@@ -122,13 +122,12 @@ int searchValIntoForm(char * form, char * param, char * result, unsigned char va
 		tmpValue[i] = '\0';		
 		if(valType == 0)						// is a string
 		{
-			if(result != NULL)					// valid pointer
+			if(result == NULL)					// not valid pointer
 			{
-				strncpy(result,tmpValue,strlen(tmpValue));
-				return strlen(tmpValue);
+				result = malloc(strlen(tmpValue));
 			}
-			else
-				return -1;						// error
+			strncpy(result,tmpValue,strlen(tmpValue));
+			return strlen(tmpValue);
 		}
 		else
 		{
@@ -172,7 +171,7 @@ void Log(char *filename, char *content)
 
 int parseSystemForm(char* form, ipFormValues_t * result)
 {
-	unsigned int qty = 0, i, nParam=0;
+	unsigned int i, nParam=0;
 	
 	for(i=0; i<strlen(form);i++)
 	{
@@ -182,110 +181,23 @@ int parseSystemForm(char* form, ipFormValues_t * result)
 	if(nParam)
 		nParam++;
 
-	printf("\nThere are %d Parameters\n",nParam);
+	//printf("\nThere are %d Parameters\n",nParam);
 	
-	char *strValue, tmpValue[10];
-	unsigned char valueLen;
-	
-	strValue = strstr(form,"ip1=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);	
-		result->ip.addr1 = atoi(tmpValue);
-	}
-	strValue = strstr(form,"ip2=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);
-		result->ip.addr2 = atoi(tmpValue);		
-	}
-	strValue = strstr(form,"ip3=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);
-		result->ip.addr3 = atoi(tmpValue);		
-	}	
-	strValue = strstr(form,"ip4=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);
-		result->ip.addr4 = atoi(tmpValue);		
-	}	
-	strValue = strstr(form,"sn1=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);	
-		result->sn.addr1 = atoi(tmpValue);		
-	}
-	strValue = strstr(form,"sn2=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);
-		result->sn.addr2 = atoi(tmpValue);		
-	}	
-	strValue = strstr(form,"sn3=");
-	if(strValue != NULL)	
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);
-		result->sn.addr3 = atoi(tmpValue);				
-	}
-	strValue = strstr(form,"sn4=");
-	if(strValue != NULL)	
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);
-		result->sn.addr4 = atoi(tmpValue);		
-	}
-	strValue = strstr(form,"gw1=");
-	if(strValue != NULL)	
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);	
-		result->gw.addr1 = atoi(tmpValue);
-	}
-	strValue = strstr(form,"gw2=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);
-		result->gw.addr2 = atoi(tmpValue);		
-	}
-	strValue = strstr(form,"gw3=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);
-		result->gw.addr3 = atoi(tmpValue);
-	}	
-	strValue = strstr(form,"gw4=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;
-		strncpy(tmpValue,strValue+4,valueLen);
-		result->gw.addr4 = atoi(tmpValue);				
-	}
+	result->ip.addr1 = searchValIntoForm(form, "ip1=", NULL, INT_TYPE);
+	result->ip.addr2 = searchValIntoForm(form, "ip2=", NULL, INT_TYPE);
+	result->ip.addr3 = searchValIntoForm(form, "ip3=", NULL, INT_TYPE);
+	result->ip.addr4 = searchValIntoForm(form, "ip4=", NULL, INT_TYPE);
+	result->sn.addr1 = searchValIntoForm(form, "sn1=", NULL, INT_TYPE);
+	result->sn.addr2 = searchValIntoForm(form, "sn2=", NULL, INT_TYPE);
+	result->sn.addr3 = searchValIntoForm(form, "sn3=", NULL, INT_TYPE);
+	result->sn.addr4 = searchValIntoForm(form, "sn4=", NULL, INT_TYPE);
+	result->gw.addr1 = searchValIntoForm(form, "gw1=", NULL, INT_TYPE);
+	result->gw.addr2 = searchValIntoForm(form, "gw2=", NULL, INT_TYPE);
+	result->gw.addr3 = searchValIntoForm(form, "gw3=", NULL, INT_TYPE);
+	result->gw.addr4 = searchValIntoForm(form, "gw4=", NULL, INT_TYPE);
 	if(strstr(form,"dhcpChk=on"))
 		result->dhcp = 1;
-	else if(strstr(form,"dhcpChk=off"))
+	else /*if(strstr(form,"dhcpChk=off"))*/		// static IP
 		result->dhcp = 0;		
 
 
@@ -296,7 +208,7 @@ int parseSystemForm(char* form, ipFormValues_t * result)
 																		result->gw.addr1,result->gw.addr2,result->gw.addr3,result->gw.addr4);
 	printf(logString);
 
-    return qty;   
+    return nParam;   
 }
 
 int parseCentralForm(char* form, isiFormValues_t * result)
@@ -396,7 +308,7 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 
 int parseSupervisorForm(char* form, svFormValues_t * result)
 {
-	unsigned int qty = 0, i, nParam=0;
+	unsigned int i, nParam=0;
 	
 	for(i=0; i<strlen(form);i++)
 	{
@@ -406,30 +318,14 @@ int parseSupervisorForm(char* form, svFormValues_t * result)
 	if(nParam)
 		nParam++;
 
-	printf("\nThere are %d Parameters\n",nParam);
+	printf("\nThere are %d Parameters\n",nParam);	
 
-	char *values = malloc(nParam*256*sizeof(char));
-	
-	char *strValue, tmpValue[10];
-	unsigned char valueLen;
-	
-	strValue = strstr(form,"ip1=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;		
-		strncpy(tmpValue,strValue+4,valueLen);
-		//result->ip.addr1 = atoi(tmpValue);
-	}
-
-	free(values);
-
-    return qty;   
+    return nParam;   
 }
 
 int parseCredentialForm(char* form, credentialFormValues_t * result)
 {
-	unsigned int qty = 0, i, nParam=0;
+	unsigned int i, nParam=0;
 	
 	for(i=0; i<strlen(form);i++)
 	{
@@ -439,58 +335,15 @@ int parseCredentialForm(char* form, credentialFormValues_t * result)
 	if(nParam)
 		nParam++;
 
-	printf("\nThere are %d Parameters\n",nParam);
-
-	char *strValue, tmpValue[64];
-	unsigned char valueLen;
+	//printf("\nThere are %d Parameters\n",nParam);
 	
-	strValue = strstr(form,"oldPwd=");
-	if(strValue != NULL)	
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;		
-		strncpy(tmpValue,strValue+strlen("oldPwd="),valueLen-strlen("oldPwd="));			
-		tmpValue[valueLen-strlen("oldPwd=")] = '\0';
-		result->oldPassword = (char *)malloc(strlen(tmpValue)+1);
-		strncpy(result->oldPassword,tmpValue,strlen(tmpValue));
-		result->oldPassword[valueLen-strlen("oldPwd=")] = '\0';				
-	}
-	strValue = strstr(form,"newPwd=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;		
-		strncpy(tmpValue,strValue+strlen("newPwd="),valueLen-strlen("newPwd="));
-		tmpValue[valueLen-strlen("newPwd=")] = '\0';
-		result->newPassword = (char *)malloc(strlen(tmpValue)+1);
-		strncpy(result->newPassword,tmpValue,strlen(tmpValue));
-		result->newPassword[valueLen-strlen("newPwd=")] = '\0';
-	}
-	strValue = strstr(form,"newPwd2=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;		
-		strncpy(tmpValue,strValue+strlen("newPwd2="),valueLen-strlen("newPwd2="));
-		tmpValue[valueLen-strlen("newPwd2=")] = '\0';
-		result->newPassword2 = (char *)malloc(strlen(tmpValue)+1);
-		strncpy(result->newPassword2,tmpValue,strlen(tmpValue));
-		result->newPassword2[valueLen-strlen("newPwd2=")] = '\0';
-	}
-	strValue = strstr(form,"user=");
-	if(strValue != NULL)
-	{
-		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
-			;		
-		strncpy(tmpValue,strValue+strlen("user="),valueLen-strlen("user="));
-		tmpValue[valueLen-strlen("user=")] = '\0';
-		result->username = (char *)malloc(strlen(tmpValue)+1);
-		strncpy(result->username,tmpValue,strlen(tmpValue));
-		result->username[valueLen-strlen("user=")] = '\0';
-	}
+	searchValIntoForm(form, "oldPwd=", result->oldPassword, STRING_TYPE);
+	searchValIntoForm(form, "newPwd=", result->oldPassword, STRING_TYPE);
+	searchValIntoForm(form, "newPwd2=", result->oldPassword, STRING_TYPE);
+	searchValIntoForm(form, "user=", result->oldPassword, STRING_TYPE);
 
 	printf("Ho finito di parsificare le credenziali\n");
-    return qty;   
+    return nParam;   
 }
 
 void changeIP(ipFormValues_t * networkParam)
