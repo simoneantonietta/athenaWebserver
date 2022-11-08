@@ -40,9 +40,9 @@ table.centralParam {
 }
 
 .central-col {
-  width: 400px;
-  min-width: 400px;
-  max-width: 400px;
+  width: 375px;
+  min-width: 375px;
+  max-width: 375px;
   left: 0px;
   vertical-align: top;
 }

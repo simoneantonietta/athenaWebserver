@@ -25,8 +25,10 @@
             var communication = document.getElementById("detfireConnection");
             break; 
         }
+        var centralType = document.getElementById("centralModel");
         changeCentralOptions(central);
         changeCommunicationOptions(communication);
+        changeParamAvailable(centralType);
         var i;
         for(i=0;i<8;i++)
         {
@@ -38,9 +40,9 @@
         switch(communication.value)
         {
           case 'com':
-            document.getElementById("centralModelLabel").style.display = "initial";
             document.getElementById("isiPort").style.display = "initial";
             document.getElementById("isiPort").value = "com1";
+            document.getElementById("isiPortLabel").style.display = "initial";
             document.getElementById("com1").style.display = "initial";
             document.getElementById("com2").style.display = "initial";
             document.getElementById("usb1").style.display = "none";
@@ -49,10 +51,10 @@
             document.getElementById("notifierComParam").style.display = "initial";
             document.getElementById("notifierLanParam").style.display = "none";
             break;
-          case 'usb':
-            document.getElementById("centralModelLabel").style.display = "initial";
+          case 'usb':            
             document.getElementById("isiPort").style.display = "initial";
             document.getElementById("isiPort").value = "usb1";
+            document.getElementById("isiPortLabel").style.display = "initial";
             document.getElementById("com1").style.display = "none";
             document.getElementById("com2").style.display = "none";
             document.getElementById("usb1").style.display = "initial";
@@ -63,7 +65,7 @@
             break;
           case 'lan':
             document.getElementById("isiPort").style.display = "none";
-            document.getElementById("centralModelLabel").style.display = "none";
+            document.getElementById("isiPortLabel").style.display = "none";
             document.getElementById("notifierComParam").style.display = "none";
             document.getElementById("notifierLanParam").style.display = "initial";            
             break;
@@ -73,20 +75,36 @@
         switch(central.value)
         {
           case 'notifier':
-              document.getElementById("centralType").style.backgroundImage = "url(/images/notifier_low.png)";
+          case 'honeywell':
+              if(central.value == 'notifier'){
+                document.getElementById("centralType").style.backgroundImage = "url(/images/notifier_low.png)";
+                document.getElementById("centralModel").value = "AM2000N";
+                document.getElementById("AM2000N").style.display = "initial";
+                document.getElementById("AM4000").style.display = "initial";
+                document.getElementById("AM6000N").style.display = "initial";
+                document.getElementById("AM8200").style.display = "initial";
+                document.getElementById("XLS200").style.display = "none";
+                document.getElementById("XLS400").style.display = "none";
+                document.getElementById("XLS600").style.display = "none";
+                console.log("notifier");
+              }
+              else{
+                document.getElementById("centralType").style.backgroundImage = "url(/images/honeywell_low.png)";
+                document.getElementById("centralModel").value = "XLS200";
+                document.getElementById("XLS200").style.display = "initial";
+                document.getElementById("XLS400").style.display = "initial";
+                document.getElementById("XLS600").style.display = "initial";
+                document.getElementById("AM2000N").style.display = "none";
+                document.getElementById("AM4000").style.display = "none";
+                document.getElementById("AM6000N").style.display = "none";
+                document.getElementById("AM8200").style.display = "none";
+                console.log("honeywell");
+              }
               document.getElementById("centralModel").style.display = "initial";
-              document.getElementById("centralModelLabel").style.display = "initial";
-              document.getElementById("centralModel").value = "AM2000N";
-              document.getElementById("AM2000N").style.display = "initial";
-              document.getElementById("AM4000").style.display = "initial";
-              document.getElementById("AM6000N").style.display = "initial";
-              document.getElementById("AM8200").style.display = "initial";
+              document.getElementById("centralModelLabel").style.display = "initial";              
               document.getElementById("TFA1-298").style.display = "none";
               document.getElementById("TFA1-596").style.display = "none";
               document.getElementById("TFA1-1192").style.display = "none";
-              document.getElementById("XLS200").style.display = "none";
-              document.getElementById("XLS400").style.display = "none";
-              document.getElementById("XLS600").style.display = "none";
               document.getElementById("CA3000P-NE").style.display = "none";
               document.getElementById("CA3000P-CMP3").style.display = "none";
               document.getElementById("CA3000P-BMP3").style.display = "none";
@@ -94,8 +112,7 @@
               document.getElementById("DF88").style.display = "none";
               document.getElementById("DF40").style.display = "none";
               document.getElementById("notifierParagraph").style.display = "initial";
-              document.getElementById("tecnofireParagraph").style.display = "none";
-              document.getElementById("honeywellParagraph").style.display = "none";
+              document.getElementById("tecnofireParagraph").style.display = "none";              
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
               document.getElementById("saetParagraph").style.display = "none";
@@ -123,39 +140,10 @@
               document.getElementById("DF40").style.display = "none";
               document.getElementById("notifierParagraph").style.display = "none";
               document.getElementById("tecnofireParagraph").style.display = "initial";
-              document.getElementById("honeywellParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
               document.getElementById("saetParagraph").style.display = "none";
-              break;
-          case 'honeywell':
-              document.getElementById("centralType").style.backgroundImage = "url(/images/honeywell_low.png)";
-              document.getElementById("centralModel").style.display = "initial";
-              document.getElementById("centralModelLabel").style.display = "initial";
-              document.getElementById("centralModel").value = "XLS200";
-              document.getElementById("AM2000N").style.display = "none";
-              document.getElementById("AM4000").style.display = "none";
-              document.getElementById("AM6000N").style.display = "none";
-              document.getElementById("AM8200").style.display = "none";
-              document.getElementById("TFA1-298").style.display = "none";
-              document.getElementById("TFA1-596").style.display = "none";
-              document.getElementById("TFA1-1192").style.display = "none";
-              document.getElementById("XLS200").style.display = "initial";
-              document.getElementById("XLS400").style.display = "initial";
-              document.getElementById("XLS600").style.display = "initial";
-              document.getElementById("CA3000P-NE").style.display = "none";
-              document.getElementById("CA3000P-CMP3").style.display = "none";
-              document.getElementById("CA3000P-BMP3").style.display = "none";
-              document.getElementById("CA3000P-CMP9").style.display = "none";
-              document.getElementById("DF88").style.display = "none";
-              document.getElementById("DF40").style.display = "none";
-              document.getElementById("notifierParagraph").style.display = "none";
-              document.getElementById("tecnofireParagraph").style.display = "none";
-              document.getElementById("honeywellParagraph").style.display = "initial";
-              document.getElementById("defParagraph").style.display = "none";
-              document.getElementById("detfireParagraph").style.display = "none";
-              document.getElementById("saetParagraph").style.display = "none";
-              break;
+              break;          
           case 'def':
               document.getElementById("centralType").style.backgroundImage = "url(/images/def_low.png)";
               document.getElementById("centralModel").style.display = "initial";
@@ -179,7 +167,6 @@
               document.getElementById("DF40").style.display = "none";
               document.getElementById("notifierParagraph").style.display = "none";
               document.getElementById("tecnofireParagraph").style.display = "none";
-              document.getElementById("honeywellParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "initial";
               document.getElementById("detfireParagraph").style.display = "none";              
               document.getElementById("saetParagraph").style.display = "none";
@@ -207,7 +194,6 @@
               document.getElementById("DF40").style.display = "initial";
               document.getElementById("notifierParagraph").style.display = "none";
               document.getElementById("tecnofireParagraph").style.display = "none";
-              document.getElementById("honeywellParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "initial";
               document.getElementById("saetParagraph").style.display = "none";
@@ -218,7 +204,6 @@
               document.getElementById("centralModelLabel").style.display = "none";
               document.getElementById("notifierParagraph").style.display = "none";
               document.getElementById("tecnofireParagraph").style.display = "none";
-              document.getElementById("honeywellParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
               document.getElementById("saetParagraph").style.display = "initial";
@@ -253,6 +238,31 @@
           document.getElementById(inputDelayTypeString).style.display = "table-row";
           document.getElementById(inputRestoreString).style.display = "table-row";
           document.getElementById(inputRestoreConditionString).style.display = "table-row";
+        }
+      }
+      function changeParamAvailable(centralType){
+        switch(centralType.value)
+        {
+          case 'AM2000N':
+          case 'AM4000':
+          case 'AM6000N':
+          case 'XLS200':
+          case 'XLS400':
+          case 'XLS600':
+            document.getElementById("notifierConnection").value = "com";            
+            document.getElementById("lanOption").style.display = "none";            
+            document.getElementById("comOption").style.display = "initial";   
+            document.getElementById("isiPort").style.display = "initial";
+            document.getElementById("isiPort").value = "com1";
+            document.getElementById("isiPortLabel").style.display = "initial";         
+            break;
+          case 'AM8200':
+            document.getElementById("notifierConnection").value = "lan";            
+            document.getElementById("lanOption").style.display = "initial";            
+            document.getElementById("comOption").style.display = "none";   
+            document.getElementById("isiPort").style.display = "none";
+            document.getElementById("isiPortLabel").style.display = "none";         
+            break;
         }
       }
     </script>     
@@ -301,7 +311,7 @@
               <label for="centralModel" name="centralModelLabel" id="centralModelLabel">Modello Centrale</label>
             </th>
             <th class="central-col">
-              <select name="centralModel" id="centralModel">
+              <select name="centralModel" id="centralModel" onchange="changeParamAvailable(this)">
                 <option value="AM2000N" id="AM2000N">AM2000N</option>
                 <option value="AM4000" id="AM4000">AM4000</option>
                 <option value="AM6000N" id="AM6000N">AM6000N</option>
@@ -335,13 +345,13 @@
               </th>
               <th class="central-col">
                 <select name="notifierConnection" id="notifierConnection" onchange="changeCommunicationOptions(this)">
-                  <option value="com">COM</option>
-                  <option value="usb" hidden>USB</option>
-                  <option value="lan">LAN</option>
+                  <option value="com" id="comOption">COM</option>
+                  <option value="usb" id="usbOption" hidden>USB</option>
+                  <option value="lan" id="lanOption">LAN</option>
                 </select>          
               </th>
               <th class="central-col">
-                <label for="isiPort" id="centralModelLabel">Porta</label>
+                <label for="isiPort" id="isiPortLabel">Porta</label>
               </th>
               <th class="central-col">
                 <select name="isiPort" id="isiPort">
@@ -470,14 +480,7 @@
               </th>
             </tr>
           </table>        
-        </section>
-        <section name="honeywellParagraph" id="honeywellParagraph">
-          <table class="ip" name="honeywellParam" id="honeywellParam">
-            <tr>
-              <th class="central-col">Parametri Centrale</th>
-            </tr>                    
-          </table>
-        </section>
+        </section>       
         <section name="defParagraph" id="defParagraph">
           <table class="ip" name="defParam" id="defParam">
             <tr>

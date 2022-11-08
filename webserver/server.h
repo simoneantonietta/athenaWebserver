@@ -227,7 +227,7 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 	searchValIntoForm(form, "centralType=", result->centralType, STRING_TYPE);	
 	searchValIntoForm(form, "centralModel=", result->centralModel, STRING_TYPE);
 
-	if(strncmp(result->centralType,"notifier",strlen("notifier"))==0)			/* Consider only notifier params */
+	if((strncmp(result->centralType,"notifier",strlen("notifier"))==0) || (strncmp(result->centralType,"honeywell",strlen("honeywell"))==0))			/* Consider only notifier params */
 	{
 		result->centralParam.address = searchValIntoForm(form, "notifierId=", NULL, INT_TYPE);
 		result->centralParam.polling = searchValIntoForm(form, "notifierPolling=", NULL, INT_TYPE);
@@ -264,10 +264,6 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 		result->centralParam.ip.addr4 = searchValIntoForm(form, "tecnofireIP4=", NULL, INT_TYPE);
 		result->centralParam.networkPort = searchValIntoForm(form, "tecnofirePort=", NULL, INT_TYPE);	
 		searchValIntoForm(form, "tecnofirePass=", result->centralParam.passphrase, STRING_TYPE);
-	}
-	else if(strncmp(result->centralType,"honeywell",strlen("honeywell"))==0)	/* Consider only honeywell params */
-	{
-
 	}
 	else if(strncmp(result->centralType,"def",strlen("def"))==0)				/* Consider only def params */
 	{
