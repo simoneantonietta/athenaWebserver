@@ -127,6 +127,7 @@ int searchValIntoForm(char * form, char * param, char * result, unsigned char va
 				result = malloc(strlen(tmpValue));
 			}
 			strncpy(result,tmpValue,strlen(tmpValue));
+			result[strlen(tmpValue)] = '\0';
 			return strlen(tmpValue);
 		}
 		else
@@ -419,7 +420,47 @@ void changeIP(ipFormValues_t * networkParam)
 
 void changeIsiConf(isiFormValues_t * isiParam)
 {
+	char tmpString[256], isiconf[1024];
+	FILE *fd = fopen("std_isi.conf","r");
 
+	isiconf[0] = '\0';											// to be sure that consecutive calls use an empty string on strcat
+
+	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)		// load standard isi.conf 
+		strcat(isiconf,tmpString);
+	fclose(fd);
+
+
+
+	//fd = fopen("/isi/isi.conf","w+");
+	fd = fopen("/home/utente/isi.conf","w+");
+	fprintf(fd,isiconf);
+
+	if(strcmp(isiParam->centralType,"saet")!=0)				// not for Saet
+	{
+		sprintf(tmpString,"# Centrale %s\n[2]\n",isiParam->centralType);		
+		fprintf(fd,tmpString);
+
+		printf(tmpString);
+
+		if((strcmp(isiParam->centralType,"notifier")==0) || (strcmp(isiParam->centralType,"honeywell")==0))
+		{
+
+		}
+		else if(strcmp(isiParam->centralType,"tecnofire")==0)
+		{
+
+		}
+		else if(strcmp(isiParam->centralType,"def")==0)
+		{
+
+		}
+		else if(strcmp(isiParam->centralType,"detfire")==0)
+		{
+
+		}
+	}
+	fclose(fd);
+	system("killall -9 isi");
 }
 
 void changeSV(svFormValues_t * svParam)
