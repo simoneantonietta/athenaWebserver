@@ -549,6 +549,31 @@
             <tr>
               <th class="central-col">Parametri Centrale</th>
             </tr>               
+            <tr>     
+              <th class="first-col"></th>       
+              <th class="central-col">
+                <label for="connection">Tipo di Connessione</label>
+              </th>
+              <th class="central-col">
+                <select name="detfireConnection" id="detfireConnection" onchange="changeCommunicationOptions(this)">
+                  <option value="com" id="comOption">COM</option>
+                  <option value="usb" id="usbOption" hidden>USB</option>
+                  <option value="lan" id="lanOption" hidden>LAN</option>
+                </select>          
+              </th>
+              <th class="central-col">
+                <label for="detfireIsiPort" id="detfireIsiPortLabel">Porta</label>
+              </th>
+              <th class="central-col">
+                <select name="detfireIsiPort" id="detfireIsiPort">
+                  <option value="com1" id="com1">COM1</option>
+                  <option value="com2" id="com2">COM2</option>
+                  <option value="usb1" id="usb1" hidden>USB1</option>
+                  <option value="usb2" id="usb2" hidden>USB2</option>
+                  <option value="usb3" id="usb3" hidden>USB3</option>                
+                </select>
+              </th>
+            </tr>
             <tr>
               <th class="central-col"></th>       
               <th class="central-col">

@@ -64,6 +64,7 @@ typedef struct{
 	unsigned int numeration;	
 	char code[64];					/* for Tecnofire only */
 	char passphrase[64];			/* for Tecnofire only */
+	char id[64];					/* for Detfire only */
 	unsigned int registerDimension;	/* for DEF only */
 	unsigned int polling;
 	unsigned char inputBalance;		/* for Saet only */
@@ -279,7 +280,19 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 	}
 	else if(strncmp(result->centralType,"detfire",strlen("detfire"))==0)		/* Consider only detfire params */
 	{
-		result->centralParam.address = searchValIntoForm(form, "detfireAdd=", NULL, INT_TYPE);
+		searchValIntoForm(form, "detfireConnection=", result->centralParam.connection, STRING_TYPE);
+		searchValIntoForm(form, "detfireIsiPort=", tmpValue, STRING_TYPE);
+		if(strncmp(tmpValue,"com1",strlen("com1"))==0)
+			result->centralParam.serialPort = 0;
+		else if(strncmp(tmpValue,"com2",strlen("com2"))==0)
+			result->centralParam.serialPort = 1;
+		else if(strncmp(tmpValue,"usb1",strlen("usb1"))==0)
+			result->centralParam.serialPort = 2;
+		else if(strncmp(tmpValue,"usb2",strlen("usb2"))==0)
+			result->centralParam.serialPort = 3;
+		else if(strncmp(tmpValue,"usb3",strlen("usb3"))==0)
+			result->centralParam.serialPort = 4;
+		searchValIntoForm(form, "detfireAdd=", result->centralParam.id, STRING_TYPE);
 		result->centralParam.baudrate = searchValIntoForm(form, "detfireBaudrate=", NULL, INT_TYPE);		
 	}
 	else if(strncmp(result->centralType,"saet",strlen("saet"))==0)			/* Consider only saet params */
@@ -467,6 +480,7 @@ void changeIP(ipFormValues_t * networkParam)
 void changeIsiConf(isiFormValues_t * isiParam)
 {
 	char tmpString[256], isiconf[1024];
+	unsigned char centralModel=0;
 	FILE *fd = fopen("std_isi.conf","r");
 
 	isiconf[0] = '\0';											// to be sure that consecutive calls use an empty string on strcat
@@ -474,9 +488,6 @@ void changeIsiConf(isiFormValues_t * isiParam)
 	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)		// load standard isi.conf 
 		strcat(isiconf,tmpString);
 	fclose(fd);
-
-
-printf("Entro in changeIsiConf\n");
 
 	//fd = fopen("/isi/isi.conf","w+");
 	fd = fopen("/home/utente/isi.conf","w+");
@@ -489,26 +500,50 @@ printf("Entro in changeIsiConf\n");
 	}
 	else
 	{
-		sprintf(tmpString,"# Centrale %s\n[2]\n",isiParam->centralType);		
+		sprintf(tmpString,"\n# Centrale %s\n[2]\n",isiParam->centralType);		
 		fprintf(fd,tmpString);
 
-		printf(tmpString);
-
 		if((strcmp(isiParam->centralType,"notifier")==0) || (strcmp(isiParam->centralType,"honeywell")==0))
-		{
-
+		{			
+			if(strcmp(isiParam->centralParam.connection,"lan")==0)
+			{
+				fprintf(fd,"Protocol=MODBUS-NOTIFIER\nId=%d\nAddress=%d.%d.%d.%d\nPort=%d\n", 	isiParam->centralParam.address,
+																					  			isiParam->centralParam.ip.addr1, isiParam->centralParam.ip.addr2, isiParam->centralParam.ip.addr3, isiParam->centralParam.ip.addr4, 
+																					  			isiParam->centralParam.networkPort);				
+			}
+			else if(strcmp(isiParam->centralParam.connection,"com")==0)
+			{
+				fprintf(fd,"Protocol=CEI\nId=%d\nPort=/dev/ttyS%d\nBaud=%d\nPolling=%d\n", 	isiParam->centralParam.address,																			  
+																			   				isiParam->centralParam.serialPort,
+																			   				isiParam->centralParam.baudrate,
+																			   				isiParam->centralParam.polling);	
+			}
 		}
 		else if(strcmp(isiParam->centralType,"tecnofire")==0)
 		{
-
+			if(strcmp(isiParam->centralModel,"TFA1-298")==0)
+				centralModel = 1;
+			else if(strcmp(isiParam->centralModel,"TFA1-596")==0)
+				centralModel = 2;
+			else if(strcmp(isiParam->centralModel,"TFA1-1192")==0)
+				centralModel = 3;
+			fprintf(fd,"Protocol=TECNOOUT\nType=%d\nCode=%s\nAddr=%d.%d.%d.%d:%d\nPassphrase=%s\n", centralModel,
+																									isiParam->centralParam.code,
+																						  			isiParam->centralParam.ip.addr1, isiParam->centralParam.ip.addr2, isiParam->centralParam.ip.addr3, isiParam->centralParam.ip.addr4, isiParam->centralParam.networkPort,
+																						  			isiParam->centralParam.passphrase);
 		}
 		else if(strcmp(isiParam->centralType,"def")==0)
 		{
-
+			fprintf(fd,"Protocol=MODBUS-DEF\nImp=%d\nId=%s\nPort=/dev/ttyS%d\nBaud=%d\n", isiParam->centralParam.plant,
+																						  isiParam->centralParam.id,
+																						  isiParam->centralParam.serialPort,
+																						  isiParam->centralParam.baudrate);
 		}
 		else if(strcmp(isiParam->centralType,"detfire")==0)
 		{
-
+			fprintf(fd,"Protocol=MAY2\nId=%s\nPort=/dev/ttyS%d\nBaud=%d\n", isiParam->centralParam.id,
+																			isiParam->centralParam.serialPort,
+																			isiParam->centralParam.baudrate);
 		}
 	}
 
