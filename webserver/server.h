@@ -115,6 +115,68 @@ void fillPage(struct file_data *page, char *pageName);
 
 
 /* Implementation */
+int changeValInHtmlPage(char *pageRow, char *param, char *value, char * pageFilled, unsigned int *newPageIndex)
+{
+	unsigned int idx;
+	char *tmpString, paramStr[64], valString[64];
+
+	sprintf(paramStr,"id=\"%s\"",param);
+	tmpString = strstr(pageRow,paramStr);
+
+	if(tmpString != NULL)
+	{		
+		for(idx=0;idx<strlen(pageRow) && (pageRow[idx]!='>');idx++)			// search end of input field
+			;
+		if(idx<strlen(pageRow))												// end of input field found
+		{						
+				sprintf(valString," value=\"%s\">\n",value);					
+				strncpy(pageFilled+(*newPageIndex)+idx,valString,strlen(valString));											
+				(*newPageIndex) = (*newPageIndex)+idx+strlen(valString);	
+				printf(pageFilled);
+				return 0;
+		}
+		else																// error, go on without changing the row									
+			return 1;		
+	}
+	else			
+			return 1;		
+}
+
+int extractValFromJson(char * json, char * searchStr, char * result, int type)
+{
+	char *searchValStr, param[64], tmpString[64];
+	unsigned int i,j;
+
+	sprintf(param,"\"%s\":",searchStr);
+	searchValStr = strstr(json,param);
+	for(i=0;(i<strlen(searchValStr)&&(searchValStr[i]!=':'));i++)
+		;
+	if(i<strlen(searchValStr))
+	{
+		i += 2;
+		j=0;		
+		while((i<strlen(searchValStr))&&(searchValStr[i]!='"'))
+		{
+			if(type == STRING_TYPE)		
+				result[j++] = searchValStr[i++];
+			else
+				tmpString[j++] = searchValStr[i++];		
+		}
+		if(type == STRING_TYPE)
+		{
+			result[j] = '\0';		
+			return 0;
+		}
+		else
+		{
+			tmpString[j] = '\0';
+			return atoi(tmpString);
+		}		
+	}
+	else
+		return -1;
+}
+
 int searchValIntoForm(char * form, char * param, char * result, unsigned char valType)
 {
 	char *strValue, tmpValue[64];
@@ -337,27 +399,7 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 			else
 				result->inputs[i].restoreCondition = BYPASS;	
 		}		
-	}
-
-	char logString[256];
-	sprintf(logString,"%s:%s\n",result->centralType,result->centralModel);
-	printf(logString);
-	Log("/tmp/webserver.log",logString);
-	sprintf(logString,"New central config:\n\tconnection:%s\n\tserialPort:%d\n\tplant:%d\n\taddress:%d\n\tbaudrate:%d\n\tIP:%d.%d.%d.%d\n\tnetworkPort:%d\n\tnumeration:%d\n\tcode:%s\n\tpassphrase:%s\n\tregisterDimension:%d\n\tpolling:%d\n",
-																		result->centralParam.connection,
-																		result->centralParam.serialPort,
-																		result->centralParam.plant,
-																		result->centralParam.address,
-																		result->centralParam.baudrate,																		
-																		result->centralParam.ip.addr1,result->centralParam.ip.addr2,result->centralParam.ip.addr3,result->centralParam.ip.addr4,
-																		result->centralParam.networkPort,
-																		result->centralParam.numeration,
-																		result->centralParam.code,
-																		result->centralParam.passphrase,
-																		result->centralParam.registerDimension,
-																		result->centralParam.polling);
-	printf(logString);
-	Log("/tmp/webserver.log",logString);
+	}	
 
     return nParam;   
 }
@@ -479,9 +521,12 @@ void changeIP(ipFormValues_t * networkParam)
 
 void changeIsiConf(isiFormValues_t * isiParam)
 {
-	char tmpString[256], isiconf[1024];
+	char tmpString[4096], isiconf[1024];
 	unsigned char centralModel=0;
-	FILE *fd = fopen("std_isi.conf","r");
+	unsigned int i;
+	FILE *fd, *fd_new;
+
+	fd = fopen("std_isi.conf","r");
 
 	isiconf[0] = '\0';											// to be sure that consecutive calls use an empty string on strcat
 
@@ -489,6 +534,7 @@ void changeIsiConf(isiFormValues_t * isiParam)
 		strcat(isiconf,tmpString);
 	fclose(fd);
 
+	/* Update isi.conf */
 	//fd = fopen("/isi/isi.conf","w+");
 	fd = fopen("/home/utente/isi.conf","w+");
 	fprintf(fd,isiconf);
@@ -548,6 +594,53 @@ void changeIsiConf(isiFormValues_t * isiParam)
 	}
 
 	fclose(fd);
+
+	/* Save values into file */
+	fd = fopen("webserver.sav","r");
+	fd_new = fopen("webserver.sav.new","w+");
+	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
+	{
+		if(strstr(tmpString,"{\"central\":[")!=NULL)
+		{
+			tmpString[0] = '\0';
+			sprintf(tmpString,"{\"central\":[{");
+			sprintf(tmpString,"%s\"centralType\":\"%s\",",				tmpString,isiParam->centralType);
+			sprintf(tmpString,"%s\"centralModel\":\"%s\",",				tmpString,isiParam->centralModel);
+			sprintf(tmpString,"%s\"connection\":\"%s\",",				tmpString,isiParam->centralParam.connection);
+			sprintf(tmpString,"%s\"serialPort\":\"%d\",",				tmpString,isiParam->centralParam.serialPort);
+			sprintf(tmpString,"%s\"plant\":\"%d\",",					tmpString,isiParam->centralParam.plant);
+			sprintf(tmpString,"%s\"address\":\"%d\",",					tmpString,isiParam->centralParam.address);
+			sprintf(tmpString,"%s\"baudrate\":\"%d\",",					tmpString,isiParam->centralParam.baudrate);
+			sprintf(tmpString,"%s\"ip\":\"%d.%d.%d.%d\",",				tmpString,isiParam->centralParam.ip.addr1,isiParam->centralParam.ip.addr2,isiParam->centralParam.ip.addr3,isiParam->centralParam.ip.addr4);
+			sprintf(tmpString,"%s\"networkPort\":\"%d\",",				tmpString,isiParam->centralParam.networkPort);
+			sprintf(tmpString,"%s\"numeration\":\"%d\",",				tmpString,isiParam->centralParam.numeration);	
+			sprintf(tmpString,"%s\"code\":\"%s\",",						tmpString,isiParam->centralParam.code);
+			sprintf(tmpString,"%s\"passphrase\":\"%s\",",				tmpString,isiParam->centralParam.passphrase);
+			sprintf(tmpString,"%s\"id\":\"%s\",",						tmpString,isiParam->centralParam.id);
+			sprintf(tmpString,"%s\"registerDimension\":\"%d\",",		tmpString,isiParam->centralParam.registerDimension);
+			sprintf(tmpString,"%s\"polling\":\"%d\",",					tmpString,isiParam->centralParam.polling);
+			sprintf(tmpString,"%s\"inputBalance\":\"%d\",",				tmpString,isiParam->centralParam.inputBalance);	
+			for(i=0;i<8;i++)
+			{
+				sprintf(tmpString,"%s\"function%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].function);	
+				sprintf(tmpString,"%s\"description%d\":\"%s\",",		tmpString,i,isiParam->inputs[i].description);
+				sprintf(tmpString,"%s\"allDayActive%d\":\"%d\",",		tmpString,i,isiParam->inputs[i].allDayActive);
+				sprintf(tmpString,"%s\"delay%d\":\"%d\",",				tmpString,i,isiParam->inputs[i].delay);
+				sprintf(tmpString,"%s\"delayType%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].delayType);
+				sprintf(tmpString,"%s\"restore%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].restore);
+				sprintf(tmpString,"%s\"restoreCondition%d\":\"%d\"",	tmpString,i,isiParam->inputs[i].restoreCondition);
+			}
+			sprintf(tmpString,"%s}]}\n",tmpString);
+			
+			printf(tmpString);
+			Log("/tmp/webserver.log",tmpString);
+		}
+		fprintf(fd_new,tmpString);
+	}
+	fclose(fd);
+	fclose(fd_new);
+	system("mv webserver.sav.new webserver.sav");
+
 	system("killall -9 isi");
 }
 
@@ -669,25 +762,12 @@ void b64_encode(char *clrstr, char *b64dst) {
 void fillPage(struct file_data *page, char *pageName)
 {
 	FILE * fd;
-	char tmpString[100], *pageFilled, *pageCpy, *pageRow, addressString[22], paramFound=0;
+	char tmpString[4096], *pageFilled, *pageCpy, *pageRow, addressString[22], paramFound=0, valStr[64];
 	unsigned int networkParams[13];
 	unsigned int idx=0, newPageIndex=0, i, old_pageRowIdx;
-	int pageRowIdx;
-	char networkParamList[13][7+1];
-
-	strcpy(networkParamList[0],"dhcpChk");
-	strcpy(networkParamList[1],"ip1");
-	strcpy(networkParamList[2],"ip2");
-	strcpy(networkParamList[3],"ip3");
-	strcpy(networkParamList[4],"ip4");
-	strcpy(networkParamList[5],"sn1");
-	strcpy(networkParamList[6],"sn2");
-	strcpy(networkParamList[7],"sn3");
-	strcpy(networkParamList[8],"sn4");
-	strcpy(networkParamList[9],"gw1");
-	strcpy(networkParamList[10],"gw2");
-	strcpy(networkParamList[11],"gw3");
-	strcpy(networkParamList[12],"gw4");
+	int pageRowIdx, changeRes;
+	char networkParamList[13][7+1];	
+	isiFormValues_t central;
 
 	pageCpy = (char *)malloc(page->size);
 	memcpy(pageCpy,page->data,page->size);
@@ -696,10 +776,97 @@ void fillPage(struct file_data *page, char *pageName)
 
 	if(strncmp(pageName,"/parametri_di_centrale.html",strlen("parametri_di_centrale"))==0)
 	{
+		fd = fopen("webserver.sav","r");		
+		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
+		{
+			if(strstr(tmpString,"{\"central\":[")!=NULL)
+			{
+				extractValFromJson(tmpString, "centralType", central.centralType, STRING_TYPE);
+				extractValFromJson(tmpString, "centralModel", central.centralModel, STRING_TYPE);
+				extractValFromJson(tmpString, "connection", central.centralParam.connection, STRING_TYPE);
+				central.centralParam.serialPort = extractValFromJson(tmpString, "serialPort", NULL, INT_TYPE);				 
+				central.centralParam.plant = extractValFromJson(tmpString, "plant", NULL, INT_TYPE);				 
+				central.centralParam.address = extractValFromJson(tmpString, "address", NULL, INT_TYPE);				 
+				central.centralParam.baudrate = extractValFromJson(tmpString, "baudrate", NULL, INT_TYPE);				 
+				extractValFromJson(tmpString, "ip", valStr, STRING_TYPE);
+				central.centralParam.ip.addr1 = atoi(strtok(valStr,"."));
+				central.centralParam.ip.addr2 = atoi(strtok(NULL,"."));
+				central.centralParam.ip.addr3 = atoi(strtok(NULL,"."));
+				central.centralParam.ip.addr4 = atoi(strtok(NULL,"."));
+				central.centralParam.networkPort = extractValFromJson(tmpString, "networkPort", NULL, INT_TYPE);				 
+				central.centralParam.numeration = extractValFromJson(tmpString, "numeration", NULL, INT_TYPE);				 
+				extractValFromJson(tmpString, "code", central.centralParam.code, STRING_TYPE);				 
+				extractValFromJson(tmpString, "passphrase", central.centralParam.passphrase, STRING_TYPE);				 
+				extractValFromJson(tmpString, "id", central.centralParam.id, STRING_TYPE);				 
+				central.centralParam.registerDimension = extractValFromJson(tmpString, "registerDimension", NULL, INT_TYPE);				 
+				central.centralParam.polling = extractValFromJson(tmpString, "polling", NULL, INT_TYPE);				 
+				central.centralParam.inputBalance = extractValFromJson(tmpString, "inputBalance", NULL, INT_TYPE);				 
+				for(i=0;i<8;i++)
+				{
+					sprintf(valStr,"function%d",i);
+					central.inputs[i].function = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
+					sprintf(valStr,"description%d",i);
+					extractValFromJson(tmpString, valStr, central.inputs[i].description, STRING_TYPE);
+					sprintf(valStr,"allDayActive%d",i);
+					central.inputs[i].allDayActive = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
+					sprintf(valStr,"delay%d",i);
+					central.inputs[i].delay = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
+					sprintf(valStr,"delayType%d",i);
+					central.inputs[i].delayType = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
+					sprintf(valStr,"restore%d",i);
+					central.inputs[i].restore = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
+					sprintf(valStr,"restoreCondition%d",i);
+					central.inputs[i].restoreCondition = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);									
+				}		
+			}						
+		}
+		pageRowIdx=0;
+		old_pageRowIdx=0;		
+		while(pageRowIdx<page->size)
+		{			
+			while(pageRowIdx<page->size && ((((char*)(page->data))[pageRowIdx])!='\n'))		// search next new line
+				pageRowIdx++;
+			if(pageRowIdx<page->size)														// new line found
+			{				
+				pageRow = malloc(pageRowIdx - old_pageRowIdx + 2);				
+				memcpy(pageRow,page->data+old_pageRowIdx,pageRowIdx - old_pageRowIdx + 1);				
+				memcpy(pageFilled+newPageIndex,pageRow,pageRowIdx - old_pageRowIdx + 1);				
+				pageRow[pageRowIdx - old_pageRowIdx] = '\0';								// add terminator	
 
+				changeRes=0;
+				changeRes |= ~changeValInHtmlPage(pageRow,"centralType",central.centralType,pageFilled,&newPageIndex);
+				changeRes |= ~changeValInHtmlPage(pageRow,"centralModel",central.centralModel,pageFilled,&newPageIndex);
+				
+				if(changeRes == 0)															// no value found
+					newPageIndex += pageRowIdx - old_pageRowIdx + 1;									
+
+				if(pageRow != NULL)	
+					free(pageRow);
+
+				old_pageRowIdx = ++pageRowIdx;
+			}
+		}
+		*(pageFilled+newPageIndex) = '\0';
+		free(page->data);
+		page->data = malloc(strlen(pageFilled));
+		memcpy((char *)(page->data),pageFilled,strlen(pageFilled));
+		page->size = strlen(pageFilled);
 	}
 	else if(strncmp(pageName,"/parametri_di_sistema.html",strlen("parametri_di_sistema"))==0)
 	{
+		strcpy(networkParamList[0],"dhcpChk");
+		strcpy(networkParamList[1],"ip1");
+		strcpy(networkParamList[2],"ip2");
+		strcpy(networkParamList[3],"ip3");
+		strcpy(networkParamList[4],"ip4");
+		strcpy(networkParamList[5],"sn1");
+		strcpy(networkParamList[6],"sn2");
+		strcpy(networkParamList[7],"sn3");
+		strcpy(networkParamList[8],"sn4");
+		strcpy(networkParamList[9],"gw1");
+		strcpy(networkParamList[10],"gw2");
+		strcpy(networkParamList[11],"gw3");
+		strcpy(networkParamList[12],"gw4");
 		/* show network configuration */
 		fd = fopen("/etc/network/network.conf", "r");
 		while(fgets(tmpString,100,fd))
