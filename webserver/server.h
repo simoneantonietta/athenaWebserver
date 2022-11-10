@@ -34,6 +34,9 @@
 #define PULSE				1
 #define CONTINUOUS 			0
 
+#define SELECT				0
+#define INPUT				1
+
 /* Enumeration */
 enum {COND_REMOTE=0, COND_ALARM, COND_SABOT, COND_FAIL, COND_EXCL, COND_BYPASS,
       COND_LOC_TAMPER, COND_LOC_POWERFAIL, COND_LOC_BATTFAIL};
@@ -67,7 +70,7 @@ typedef struct{
 	char id[64];					/* for Detfire only */
 	unsigned int registerDimension;	/* for DEF only */
 	unsigned int polling;
-	unsigned char inputBalance;		/* for Saet only */
+	unsigned char inputBalance;		/* for local only */
 }centralParam_t;
 
 typedef struct{
@@ -115,24 +118,45 @@ void fillPage(struct file_data *page, char *pageName);
 
 
 /* Implementation */
-int changeValInHtmlPage(char *pageRow, char *param, char *value, char * pageFilled, unsigned int *newPageIndex)
+unsigned char changeValInHtmlPage(char *pageRow, char *param, char *value, char * pageFilled, unsigned int *newPageIndex, unsigned char inputType)
 {
-	unsigned int idx;
-	char *tmpString, paramStr[64], valString[64];
+	unsigned int idx,i;
+	char *tmpString, paramStr[64], valString[256], tmpValue[64];
 
-	sprintf(paramStr,"id=\"%s\"",param);
+	switch(inputType)
+	{
+		case SELECT:
+			sprintf(paramStr," value=\"%s\">",value);			
+			break;
+		case INPUT:
+			sprintf(paramStr,"id=\"%s\"",param);
+			break;
+	}	
 	tmpString = strstr(pageRow,paramStr);
 
 	if(tmpString != NULL)
 	{		
 		for(idx=0;idx<strlen(pageRow) && (pageRow[idx]!='>');idx++)			// search end of input field
-			;
+			valString[idx]=pageRow[idx];
+		valString[idx] = '\0';
 		if(idx<strlen(pageRow))												// end of input field found
 		{						
-				sprintf(valString," value=\"%s\">\n",value);					
-				strncpy(pageFilled+(*newPageIndex)+idx,valString,strlen(valString));											
-				(*newPageIndex) = (*newPageIndex)+idx+strlen(valString);	
-				printf(pageFilled);
+				switch(inputType)
+				{
+					case SELECT:
+						strcat(valString," selected");	
+						break;
+					case INPUT:
+						sprintf(tmpValue," value=\"%s\"",value);
+						strcat(valString,tmpValue);
+						break;
+				}	
+				for(i=strlen(valString);idx<strlen(pageRow) && (pageRow[idx]!='\n');i++,idx++){
+					valString[i] = pageRow[idx];
+				}						
+				valString[i] = '\0';
+				strncpy(pageFilled+(*newPageIndex),valString,strlen(valString));											
+				(*newPageIndex) = (*newPageIndex)+strlen(valString);					
 				return 0;
 		}
 		else																// error, go on without changing the row									
@@ -281,7 +305,7 @@ int parseSystemForm(char* form, ipFormValues_t * result)
 int parseCentralForm(char* form, isiFormValues_t * result)
 {
 	unsigned int i, nParam=0;
-	char tmpValue[64];
+	char tmpValue[64], formValStr[64];
 	
 	for(i=0; i<strlen(form);i++)
 	{
@@ -357,7 +381,7 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 		searchValIntoForm(form, "detfireAdd=", result->centralParam.id, STRING_TYPE);
 		result->centralParam.baudrate = searchValIntoForm(form, "detfireBaudrate=", NULL, INT_TYPE);		
 	}
-	else if(strncmp(result->centralType,"saet",strlen("saet"))==0)			/* Consider only saet params */
+	else if(strncmp(result->centralType,"local",strlen("local"))==0)			/* Consider only local params */
 	{
 		searchValIntoForm(form, "balanceType=", tmpValue, STRING_TYPE);		
 		if(strncmp(tmpValue,"onOffNA",strlen("onOffNA"))==0)
@@ -369,7 +393,15 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 		for(i=0;i<8;i++)
 		{
 			sprintf(tmpValue,"in%dFunction=",i+1);
-			result->inputs[i].function = searchValIntoForm(form, tmpValue, NULL, INT_TYPE);			
+			searchValIntoForm(form, tmpValue, formValStr, STRING_TYPE);
+			if(strcmp(formValStr,"alarm"))
+				result->inputs[i].function = COND_ALARM;
+			else if(strcmp(formValStr,"broken"))
+				result->inputs[i].function = COND_SABOT;
+			else if(strcmp(formValStr,"exclusion"))
+				result->inputs[i].function = COND_EXCL;
+			else if(strcmp(formValStr,"bypass"))
+				result->inputs[i].function = COND_BYPASS;
 			sprintf(tmpValue,"in%dDesc=",i+1);
 			searchValIntoForm(form, tmpValue, result->inputs[i].description, STRING_TYPE);
 			sprintf(tmpValue,"in%denable24h=",i+1);
@@ -539,7 +571,7 @@ void changeIsiConf(isiFormValues_t * isiParam)
 	fd = fopen("/home/utente/isi.conf","w+");
 	fprintf(fd,isiconf);
 
-	if(strcmp(isiParam->centralType,"saet")==0)				
+	if(strcmp(isiParam->centralType,"local")==0)				
 	{
 		sprintf(tmpString,"Balance=%d\n\n",isiParam->centralParam.inputBalance);		
 		fprintf(fd,tmpString);
@@ -580,8 +612,8 @@ void changeIsiConf(isiFormValues_t * isiParam)
 		}
 		else if(strcmp(isiParam->centralType,"def")==0)
 		{
-			fprintf(fd,"Protocol=MODBUS-DEF\nImp=%d\nId=%s\nPort=/dev/ttyS%d\nBaud=%d\n", isiParam->centralParam.plant,
-																						  isiParam->centralParam.id,
+			fprintf(fd,"Protocol=MODBUS-DEF\nImp=%d\nId=%d\nPort=/dev/ttyS%d\nBaud=%d\n", isiParam->centralParam.plant,
+																						  isiParam->centralParam.address,
 																						  isiParam->centralParam.serialPort,
 																						  isiParam->centralParam.baudrate);
 		}
@@ -762,15 +794,14 @@ void b64_encode(char *clrstr, char *b64dst) {
 void fillPage(struct file_data *page, char *pageName)
 {
 	FILE * fd;
-	char tmpString[4096], *pageFilled, *pageCpy, *pageRow, addressString[22], paramFound=0, valStr[64];
+	char tmpString[4096], *pageFilled, *pageRow, addressString[22], paramFound=0, valStr[64];
 	unsigned int networkParams[13];
 	unsigned int idx=0, newPageIndex=0, i, old_pageRowIdx;
-	int pageRowIdx, changeRes;
+	unsigned char changeRes;
+	int pageRowIdx;
 	char networkParamList[13][7+1];	
 	isiFormValues_t central;
 
-	pageCpy = (char *)malloc(page->size);
-	memcpy(pageCpy,page->data,page->size);
 	pageFilled = malloc(page->size + N_BYTES_PARAMS);
 	printf("Page size:%d\n",page->size);
 
@@ -820,6 +851,7 @@ void fillPage(struct file_data *page, char *pageName)
 				}		
 			}						
 		}
+		printf("Code:%s networkPort:%d\n", central.centralParam.code,central.centralParam.networkPort);
 		pageRowIdx=0;
 		old_pageRowIdx=0;		
 		while(pageRowIdx<page->size)
@@ -832,14 +864,84 @@ void fillPage(struct file_data *page, char *pageName)
 				memcpy(pageRow,page->data+old_pageRowIdx,pageRowIdx - old_pageRowIdx + 1);				
 				memcpy(pageFilled+newPageIndex,pageRow,pageRowIdx - old_pageRowIdx + 1);				
 				pageRow[pageRowIdx - old_pageRowIdx] = '\0';								// add terminator	
-
-				changeRes=0;
-				changeRes |= ~changeValInHtmlPage(pageRow,"centralType",central.centralType,pageFilled,&newPageIndex);
-				changeRes |= ~changeValInHtmlPage(pageRow,"centralModel",central.centralModel,pageFilled,&newPageIndex);
 				
+				changeRes=0;
+				changeRes |= (~changeValInHtmlPage(pageRow,NULL,central.centralType,pageFilled,&newPageIndex,SELECT))&0x01;				
+				changeRes |= (~changeValInHtmlPage(pageRow,NULL,central.centralModel,pageFilled,&newPageIndex,SELECT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,NULL,central.centralParam.connection,pageFilled,&newPageIndex,SELECT))&0x01;
+				switch(central.centralParam.serialPort)
+				{
+					case 0:
+						sprintf(tmpString,"com1");
+						break;
+					case 1:
+						sprintf(tmpString,"com2");
+						break;
+					case 2:
+						sprintf(tmpString,"usb1");
+						break;
+					case 3:
+						sprintf(tmpString,"usb2");
+						break;
+					case 4:
+						sprintf(tmpString,"usb3");
+						break;
+				}				
+				changeRes |= (~changeValInHtmlPage(pageRow,NULL,tmpString,pageFilled,&newPageIndex,SELECT))&0x01;				
+				sprintf(tmpString,"%d",central.centralParam.plant);
+				changeRes |= (~changeValInHtmlPage(pageRow,"defPlant",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				sprintf(tmpString,"%d",central.centralParam.address);
+				changeRes |= (~changeValInHtmlPage(pageRow,"notifierId",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"defId",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				sprintf(tmpString,"%d",central.centralParam.baudrate);
+				changeRes |= (~changeValInHtmlPage(pageRow,NULL,tmpString,pageFilled,&newPageIndex,SELECT))&0x01;
+				sprintf(tmpString,"%d",central.centralParam.ip.addr1);				
+				changeRes |= (~changeValInHtmlPage(pageRow,"notifierIP1",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"tecnofireIP1",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				sprintf(tmpString,"%d",central.centralParam.ip.addr2);								
+				changeRes |= (~changeValInHtmlPage(pageRow,"notifierIP2",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"tecnofireIP2",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				sprintf(tmpString,"%d",central.centralParam.ip.addr3);								
+				changeRes |= (~changeValInHtmlPage(pageRow,"notifierIP3",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"tecnofireIP3",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				sprintf(tmpString,"%d",central.centralParam.ip.addr4);								
+				changeRes |= (~changeValInHtmlPage(pageRow,"notifierIP4",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;	
+				changeRes |= (~changeValInHtmlPage(pageRow,"tecnofireIP4",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;	
+				sprintf(tmpString,"%d",central.centralParam.networkPort);								
+				changeRes |= (~changeValInHtmlPage(pageRow,"notifierPort",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"tecnofirePort",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				if(central.centralParam.numeration == 0)
+					changeRes |= (~changeValInHtmlPage(pageRow,NULL,"standard",pageFilled,&newPageIndex,SELECT))&0x01;
+				else
+					changeRes |= (~changeValInHtmlPage(pageRow,NULL,"stdRiass",pageFilled,&newPageIndex,SELECT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"tecnofireCode",central.centralParam.code,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"tecnofirePass",central.centralParam.passphrase,pageFilled,&newPageIndex,INPUT))&0x01;				
+				changeRes |= (~changeValInHtmlPage(pageRow,"detfireAdd",central.centralParam.id,pageFilled,&newPageIndex,INPUT))&0x01;	
+				sprintf(tmpString,"%d",central.centralParam.registerDimension);								
+				changeRes |= (~changeValInHtmlPage(pageRow,"defMaxReg",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;		
+				sprintf(tmpString,"%d",central.centralParam.polling);								
+				changeRes |= (~changeValInHtmlPage(pageRow,"notifierPolling",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;			
+				changeRes |= (~changeValInHtmlPage(pageRow,"defPolling",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				switch(central.centralParam.inputBalance)
+				{
+					case 1:
+						sprintf(tmpString,"triple");
+						break;
+					case 2:
+						sprintf(tmpString,"onOffNA");
+						break;
+					case 3:
+						sprintf(tmpString,"onOffNC");
+						break;					
+				}				
+				changeRes |= (~changeValInHtmlPage(pageRow,NULL,tmpString,pageFilled,&newPageIndex,SELECT))&0x01;
+				if(strcmp(central.centralType,"local")==0)
+				{
+
+				}	
 				if(changeRes == 0)															// no value found
 					newPageIndex += pageRowIdx - old_pageRowIdx + 1;									
-
+				
 				if(pageRow != NULL)	
 					free(pageRow);
 
@@ -986,7 +1088,5 @@ void fillPage(struct file_data *page, char *pageName)
 
 	if(pageFilled != NULL)
 		free(pageFilled);
-	if(pageCpy != NULL)
-		free(pageCpy);
 }
 /* */

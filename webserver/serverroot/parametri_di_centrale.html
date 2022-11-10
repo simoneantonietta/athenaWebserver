@@ -7,6 +7,10 @@
     <script type="text/javascript">
       function initialLoad(){
         var central = document.getElementById("centralType");
+        var centralType = document.getElementById("centralModel").value;
+        var isiPort = document.getElementById("isiPort").value;
+        var detfireIsiPort = document.getElementById("detfireIsiPort").value;
+        changeCentralOptions(central,true);
         switch(central.value)
         {
           case "notifier":
@@ -24,11 +28,11 @@
           case "detfire":
             var communication = document.getElementById("detfireConnection");
             break; 
-        }
-        var centralType = document.getElementById("centralModel");
-        changeCentralOptions(central);
-        changeCommunicationOptions(communication);
-        changeParamAvailable(centralType);
+        }        
+        document.getElementById('centralModel').value=centralType;                    //changeCentralOptions can modify it        
+        changeParamAvailable(document.getElementById('centralModel'));        
+        document.getElementById("isiPort").value = isiPort;                           //changeCommunicationOptions can modify them        
+        document.getElementById("detfireIsiPort").value = detfireIsiPort;        
         var i;
         for(i=0;i<8;i++)
         {
@@ -37,17 +41,26 @@
         }
       }
       function changeCommunicationOptions(communication){
+        var central = document.getElementById("centralType").value;        
         switch(communication.value)
         {
           case 'com':
             document.getElementById("isiPort").style.display = "initial";
             document.getElementById("isiPort").value = "com1";
             document.getElementById("isiPortLabel").style.display = "initial";
-            document.getElementById("com1").style.display = "initial";
-            document.getElementById("com2").style.display = "initial";
-            document.getElementById("usb1").style.display = "none";
-            document.getElementById("usb2").style.display = "none";
-            document.getElementById("usb3").style.display = "none";
+            document.getElementById("detfireIsiPort").style.display = "initial";
+            document.getElementById("detfireIsiPort").value = "com1";
+            document.getElementById("detfireIsiPortLabel").style.display = "initial";
+            document.getElementById("notifierCom1").style.display = "initial";
+            document.getElementById("notifierCom2").style.display = "initial";
+            document.getElementById("notifierUsb1").style.display = "none";
+            document.getElementById("notifierUsb2").style.display = "none";
+            document.getElementById("notifierUsb3").style.display = "none";
+            document.getElementById("detfireCom1").style.display = "initial";
+            document.getElementById("detfireCom2").style.display = "initial";
+            document.getElementById("detfireUsb1").style.display = "none";
+            document.getElementById("detfireUsb2").style.display = "none";
+            document.getElementById("detfireUsb3").style.display = "none";
             document.getElementById("notifierComParam").style.display = "initial";
             document.getElementById("notifierLanParam").style.display = "none";
             break;
@@ -55,23 +68,39 @@
             document.getElementById("isiPort").style.display = "initial";
             document.getElementById("isiPort").value = "usb1";
             document.getElementById("isiPortLabel").style.display = "initial";
-            document.getElementById("com1").style.display = "none";
-            document.getElementById("com2").style.display = "none";
-            document.getElementById("usb1").style.display = "initial";
-            document.getElementById("usb2").style.display = "initial";
-            document.getElementById("usb3").style.display = "initial";
+            document.getElementById("detfireIsiPort").style.display = "initial";
+            document.getElementById("detfireIsiPort").value = "usb1";
+            document.getElementById("detfireIsiPortLabel").style.display = "initial";
+            document.getElementById("notifierCom1").style.display = "none";
+            document.getElementById("notifierCom2").style.display = "none";
+            document.getElementById("notifierUsb1").style.display = "initial";
+            document.getElementById("notifierUsb2").style.display = "initial";
+            document.getElementById("notifierUsb3").style.display = "initial";
+            document.getElementById("detfireCom1").style.display = "none";
+            document.getElementById("detfireCom2").style.display = "none";
+            document.getElementById("detfireUsb1").style.display = "initial";
+            document.getElementById("detfireUsb2").style.display = "initial";
+            document.getElementById("detfireUsb3").style.display = "initial";            
             document.getElementById("notifierComParam").style.display = "none";
             document.getElementById("notifierLanParam").style.display = "none";
             break;
-          case 'lan':
-            document.getElementById("isiPort").style.display = "none";
-            document.getElementById("isiPortLabel").style.display = "none";
-            document.getElementById("notifierComParam").style.display = "none";
-            document.getElementById("notifierLanParam").style.display = "initial";            
+          case 'lan':            
+            if(central == 'notifier' || central == 'honeywell')
+            {
+              document.getElementById("isiPort").style.display = "none";
+              document.getElementById("isiPortLabel").style.display = "none";
+              document.getElementById("notifierComParam").style.display = "none";
+              document.getElementById("notifierLanParam").style.display = "initial";                        
+            }
+            else if(central == 'detfire')
+            {
+              document.getElementById("detfireIsiPort").style.display = "none";
+              document.getElementById("detfireIsiPortLabel").style.display = "none";            
+            }
             break;
         }
       }
-      function changeCentralOptions(central){
+      function changeCentralOptions(central,initialLoading){
         switch(central.value)
         {
           case 'notifier':
@@ -113,7 +142,10 @@
               document.getElementById("tecnofireParagraph").style.display = "none";              
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
-              document.getElementById("saetParagraph").style.display = "none";
+              document.getElementById("localParagraph").style.display = "none";
+              changeParamAvailable(document.getElementById("centralModel"));   
+              if(initialLoading == false)                         
+                document.getElementById("notifierPolling").value = 1;
               break;
           case 'tecnofire':
               document.getElementById("centralType").style.backgroundImage = "url(/images/tecnofire_low.png)";
@@ -140,7 +172,12 @@
               document.getElementById("tecnofireParagraph").style.display = "initial";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
-              document.getElementById("saetParagraph").style.display = "none";
+              document.getElementById("localParagraph").style.display = "none";
+              if(initialLoading == false)
+              {
+                document.getElementById("tecnofireCode").value = "12345";
+                document.getElementById("tecnofirePort").value = 10001;
+              }
               break;          
           case 'def':
               document.getElementById("centralType").style.backgroundImage = "url(/images/def_low.png)";
@@ -167,7 +204,9 @@
               document.getElementById("tecnofireParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "initial";
               document.getElementById("detfireParagraph").style.display = "none";              
-              document.getElementById("saetParagraph").style.display = "none";
+              document.getElementById("localParagraph").style.display = "none";
+              if(initialLoading == false)
+                document.getElementById("defPolling").value = 1;
               break;
           case 'detfire':
               document.getElementById("centralType").style.backgroundImage = "url(/images/detfire_low.png)";
@@ -194,9 +233,11 @@
               document.getElementById("tecnofireParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "initial";
-              document.getElementById("saetParagraph").style.display = "none";
+              document.getElementById("localParagraph").style.display = "none";
+              if(initialLoading == false)
+                document.getElementById("detfireAdd").value = "aaa";
               break;
-          case 'saet':
+          case 'local':
               document.getElementById("centralType").style.backgroundImage = "url(/images/saet_low.png)";
               document.getElementById("centralModel").style.display = "none";
               document.getElementById("centralModelLabel").style.display = "none";
@@ -204,7 +245,7 @@
               document.getElementById("tecnofireParagraph").style.display = "none";
               document.getElementById("defParagraph").style.display = "none";
               document.getElementById("detfireParagraph").style.display = "none";
-              document.getElementById("saetParagraph").style.display = "initial";
+              document.getElementById("localParagraph").style.display = "initial";
               break;
         }
       }
@@ -259,9 +300,10 @@
             document.getElementById("lanOption").style.display = "initial";            
             document.getElementById("comOption").style.display = "none";   
             document.getElementById("isiPort").style.display = "none";
-            document.getElementById("isiPortLabel").style.display = "none";         
+            document.getElementById("isiPortLabel").style.display = "none";            
             break;
         }
+        changeCommunicationOptions(document.getElementById("notifierConnection"));
       }      
     </script>     
   </head>
@@ -295,13 +337,13 @@
               <label for="centralType">Marca Centrale</label>
             </th>
             <th class="central-col">
-              <select class="centralType" name="centralType" id="centralType" onchange="changeCentralOptions(this)">
+              <select class="centralType" name="centralType" id="centralType" onchange="changeCentralOptions(this,false)">
                 <option value="notifier">Notifier</option>                
                 <option value="tecnofire">Tecnofire</option>
                 <option value="honeywell">Honeywell</option>
                 <option value="def">DEF</option>
                 <option value="detfire">DETFIRE</option>
-                <option value="saet">Saet</option>
+                <option value="local">Ingressi locali</option>
               </select>            
             </th>           
             <th class="central-col"></th> 
@@ -309,23 +351,23 @@
               <label for="centralModel" name="centralModelLabel" id="centralModelLabel">Modello Centrale</label>
             </th>
             <th class="central-col">
-              <select name="centralModel" id="centralModel" onchange="changeParamAvailable(this)">
-                <option value="AM2000N" id="AM2000N">AM2000N</option>
-                <option value="AM4000" id="AM4000">AM4000</option>
-                <option value="AM6000N" id="AM6000N">AM6000N</option>
-                <option value="AM8200" id="AM8200">AM8200</option>
-                <option value="TFA1-298" id="TFA1-298">TFA1-298</option>
-                <option value="TFA1-596" id="TFA1-596">TFA1-596</option>
-                <option value="TFA1-1192" id="TFA1-1192">TFA1-1192</option>
-                <option value="XLS200" id="XLS200">XLS200</option>
-                <option value="XLS400" id="XLS400">XLS400</option>
-                <option value="XLS600" id="XLS600">XLS600</option>
-                <option value="CA3000P-NE" id="CA3000P-NE">CA3000P-NE</option>
-                <option value="CA3000P-CMP3" id="CA3000P-CMP3">CA3000P-CMP3</option>
-                <option value="CA3000P-BMP3" id="CA3000P-BMP3">CA3000P-BMP3</option>
-                <option value="CA3000P-CMP9" id="CA3000P-CMP9">CA3000P-CMP9</option>
-                <option value="DF88" id="DF88">DF88</option>
-                <option value="DF40" id="DF40">DF40</option>
+              <select onchange="changeParamAvailable(this)" name="centralModel" id="centralModel">
+                <option id="AM2000N" value="AM2000N">AM2000N</option>
+                <option id="AM4000" value="AM4000">AM4000</option>
+                <option id="AM6000N" value="AM6000N">AM6000N</option>
+                <option id="AM8200" value="AM8200">AM8200</option>
+                <option id="TFA1-298" value="TFA1-298">TFA1-298</option>
+                <option id="TFA1-596" value="TFA1-596">TFA1-596</option>
+                <option id="TFA1-1192" value="TFA1-1192">TFA1-1192</option>
+                <option id="XLS200" value="XLS200">XLS200</option>
+                <option id="XLS400" value="XLS400">XLS400</option>
+                <option id="XLS600" value="XLS600">XLS600</option>
+                <option id="CA3000P-NE" value="CA3000P-NE">CA3000P-NE</option>
+                <option id="CA3000P-CMP3" value="CA3000P-CMP3">CA3000P-CMP3</option>
+                <option id="CA3000P-BMP3" value="CA3000P-BMP3">CA3000P-BMP3</option>
+                <option id="CA3000P-CMP9" value="CA3000P-CMP9">CA3000P-CMP9</option>
+                <option id="DF88" value="DF88">DF88</option>
+                <option id="DF40" value="DF40">DF40</option>
               </select>
             </th>
           </tr>  
@@ -343,9 +385,9 @@
               </th>
               <th class="central-col">
                 <select name="notifierConnection" id="notifierConnection" onchange="changeCommunicationOptions(this)">
-                  <option value="com" id="comOption">COM</option>
-                  <option value="usb" id="usbOption" hidden>USB</option>
-                  <option value="lan" id="lanOption">LAN</option>
+                  <option id="comOption" value="com">COM</option>
+                  <option hidden id="usbOption" value="usb">USB</option>
+                  <option id="lanOption" value="lan">LAN</option>
                 </select>          
               </th>
               <th class="central-col">
@@ -353,11 +395,11 @@
               </th>
               <th class="central-col">
                 <select name="isiPort" id="isiPort">
-                  <option value="com1" id="com1">COM1</option>
-                  <option value="com2" id="com2">COM2</option>
-                  <option value="usb1" id="usb1">USB1</option>
-                  <option value="usb2" id="usb2">USB2</option>
-                  <option value="usb3" id="usb3">USB3</option>                
+                  <option id="notifierCom1" value="com1">COM1</option>
+                  <option id="notifierCom2" value="com2">COM2</option>
+                  <option id="notifierUsb1" value="usb1">USB1</option>
+                  <option id="notifierUsb2" value="usb2">USB2</option>
+                  <option id="notifierUsb3" value="usb3">USB3</option>                
                 </select>
               </th>
             </tr>
@@ -367,7 +409,7 @@
                 <label >Indirizzo</label>
               </th>
               <th class="central-col">
-                <input class="tecnofireInput" type="number" min="1" max="65535" name="notifierId">
+                <input class="tecnofireInput" type="number" min="0" max="65535" name="notifierId" id="notifierId">
               </th>
             </tr>
             <tr>
@@ -376,7 +418,7 @@
                 <label >Polling</label>
               </th>
               <th class="central-col">
-                <input class="tecnofireInput" type="number" min="1" max="65535" name="notifierPolling" value="1">
+                <input class="tecnofireInput" type="number" min="0" max="65535" name="notifierPolling" id="notifierPolling">
               </th>
             </tr>
           </table>
@@ -399,7 +441,7 @@
                 <label >Porta di rete</label>
               </th>
               <th class="central-col">
-                <input type="number" min="1" max="65535" name="notifierPort" id="notifierPort" value="502">
+                <input type="number" min="0" max="65535" name="notifierPort" id="notifierPort" value="502">
               </th>
             </tr>            
           </table>
@@ -442,7 +484,7 @@
                 <label >Codice</label>
               </th>
               <th>
-                <input class="tecnofireInput" type="text" value="12345" name="tecnofireCode" id="tecnofireCode">
+                <input class="tecnofireInput" type="text" name="tecnofireCode" id="tecnofireCode">
               </th>
               <th class="central-col"></th>       
               <th class="central-col"></th>                     
@@ -465,7 +507,7 @@
                 <label >Porta di rete</label>
               </th>
               <th class="central-col">
-                <input class="tecnofireInput" type="number" min="1" max="65535" name="tecnofirePort" id="tecnofirePort" value="10001">
+                <input class="tecnofireInput" type="number" min="0" max="65535" name="tecnofirePort" id="tecnofirePort">
               </th>
             </tr>
             <tr>
@@ -490,7 +532,7 @@
                 <label >Impianto</label>
               </th>
               <th>
-                <input class="tecnofireInput" type="text" name="defPlant" id="defPlant">
+                <input class="tecnofireInput" type="number" name="defPlant" id="defPlant">
               </th>
               <th class="central-col"></th>       
               <th class="central-col"></th>                     
@@ -528,7 +570,7 @@
                 <label >Dimensioni Registro</label>
               </th>
               <th class="central-col">
-                <input class="tecnofireInput" type="number" name="defMaxReg">
+                <input class="tecnofireInput" type="number" name="defMaxReg" id="defMaxReg">
               </th>
             </tr>
             <tr>
@@ -537,7 +579,7 @@
                 <label for="connection">Polling</label>
               </th>
               <th class="central-col">
-                <input type="number" min="1" max="65535" name="defPolling" id="defPolling" value="1">
+                <input type="number" min="0" max="65535" name="defPolling" id="defPolling">
               </th>
             </tr>
           </table> 
@@ -554,9 +596,9 @@
               </th>
               <th class="central-col">
                 <select name="detfireConnection" id="detfireConnection" onchange="changeCommunicationOptions(this)">
-                  <option value="com" id="comOption">COM</option>
-                  <option value="usb" id="usbOption" hidden>USB</option>
-                  <option value="lan" id="lanOption" hidden>LAN</option>
+                 <option id="comOption" value="com">COM</option>
+                  <option hidden id="usbOption" value="usb">USB</option>
+                  <option hidden id="lanOption" value="lan">LAN</option>
                 </select>          
               </th>
               <th class="central-col">
@@ -564,11 +606,11 @@
               </th>
               <th class="central-col">
                 <select name="detfireIsiPort" id="detfireIsiPort">
-                  <option value="com1" id="com1">COM1</option>
-                  <option value="com2" id="com2">COM2</option>
-                  <option value="usb1" id="usb1" hidden>USB1</option>
-                  <option value="usb2" id="usb2" hidden>USB2</option>
-                  <option value="usb3" id="usb3" hidden>USB3</option>                
+                  <option id="detfireCom1" value="com1">COM1</option>
+                  <option id="detfireCom2" value="com2">COM2</option>
+                  <option id="detfireUsb1" value="usb1">USB1</option>
+                  <option id="detfireUsb2" value="usb2">USB2</option>
+                  <option id="detfireUsb3" value="usb3">USB3</option>                 
                 </select>
               </th>
             </tr>
@@ -577,9 +619,9 @@
               <th class="central-col">
                 <label >Indirizzo</label>
               </th>
-              <th>
-                <input class="tecnofireInput" type="text" name="detfireAdd" id="detfireAdd" value="aaa">
-              </th>                    
+              <th>                            
+                <input class="tecnofireInput" type="text" name="detfireAdd" id="detfireAdd">
+                </th>      
             </tr> 
             <tr>
               <th class="central-col"></th>       
@@ -596,8 +638,8 @@
             </tr>   
           </table>
         </section>
-        <section name="saetParagraph" id="saetParagraph">
-          <table class="ip" name="saetParam" id="saetParam">
+        <section name="localParagraph" id="localParagraph">
+          <table class="ip" name="localParam" id="localParam">
             <tr>
               <th class="central-col">Parametri Centrale</th>
             </tr>               
@@ -622,10 +664,10 @@
               </th>
               <th class="central-col">
                 <select name="in1Function" id="in1Function" onchange="showInputSetting(this)">
-                  <option value="0">Allarme</option>
-                  <option value="1">Guasto</option>
-                  <option value="2">Esclusione</option>
-                  <option value="3">ByPass</option>
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
                 </select>
               </th>
             </tr>
@@ -715,10 +757,10 @@
               </th>
               <th class="central-col">
                 <select name="in2Function" id="in2Function" onchange="showInputSetting(this)">
-                  <option value="0">Allarme</option>
-                  <option value="1">Guasto</option>
-                  <option value="2">Esclusione</option>
-                  <option value="3">ByPass</option>
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
                 </select>
               </th>
             </tr>
@@ -808,10 +850,10 @@
               </th>
               <th class="central-col">
                 <select name="in3Function" id="in3Function" onchange="showInputSetting(this)">
-                  <option value="0">Allarme</option>
-                  <option value="1">Guasto</option>
-                  <option value="2">Esclusione</option>
-                  <option value="3">ByPass</option>
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
                 </select>
               </th>
             </tr>
@@ -901,10 +943,10 @@
               </th>
               <th class="central-col">
                 <select name="in4Function" id="in4Function" onchange="showInputSetting(this)">
-                  <option value="0">Allarme</option>
-                  <option value="1">Guasto</option>
-                  <option value="2">Esclusione</option>
-                  <option value="3">ByPass</option>
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
                 </select>
               </th>
             </tr>
@@ -994,10 +1036,10 @@
               </th>
               <th class="central-col">
                 <select name="in5Function" id="in5Function" onchange="showInputSetting(this)">
-                  <option value="0">Allarme</option>
-                  <option value="1">Guasto</option>
-                  <option value="2">Esclusione</option>
-                  <option value="3">ByPass</option>
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
                 </select>
               </th>
             </tr>
@@ -1087,10 +1129,10 @@
               </th>
               <th class="central-col">
                 <select name="in6Function" id="in6Function" onchange="showInputSetting(this)">
-                  <option value="0">Allarme</option>
-                  <option value="1">Guasto</option>
-                  <option value="2">Esclusione</option>
-                  <option value="3">ByPass</option>
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
                 </select>
               </th>
             </tr>
@@ -1180,10 +1222,10 @@
               </th>
               <th class="central-col">
                 <select name="in7Function" id="in7Function" onchange="showInputSetting(this)">
-                  <option value="0">Allarme</option>
-                  <option value="1">Guasto</option>
-                  <option value="2">Esclusione</option>
-                  <option value="3">ByPass</option>
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
                 </select>
               </th>
             </tr>
@@ -1273,10 +1315,10 @@
               </th>
               <th class="central-col">
                 <select name="in8Function" id="in8Function" onchange="showInputSetting(this)">
-                  <option value="0">Allarme</option>
-                  <option value="1">Guasto</option>
-                  <option value="2">Esclusione</option>
-                  <option value="3">ByPass</option>
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
                 </select>
               </th>
             </tr>
