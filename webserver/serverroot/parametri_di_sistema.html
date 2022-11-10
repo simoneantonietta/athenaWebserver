@@ -5,6 +5,30 @@
     <link rel="stylesheet" href="style.css">
     <title>Saet I.S. || Athena</title> 
     <script type="text/javascript">
+      function initialLoad(){
+        openTab('network');
+        showIP(document.getElementById('dhcpChk'));
+      }
+      function openTab(resource){
+        switch(resource)
+        {
+          case 'network':
+            document.getElementById("network").style.display = 'block';
+            document.getElementById("output").style.display = 'none';
+            document.getElementById("credentials").style.display = 'none';
+            break;
+          case 'output':
+            document.getElementById("network").style.display = 'none';
+            document.getElementById("output").style.display = 'block';
+            document.getElementById("credentials").style.display = 'none';
+            break;
+          case 'credentials':
+            document.getElementById("network").style.display = 'none';
+            document.getElementById("output").style.display = 'none';
+            document.getElementById("credentials").style.display = 'block';
+            break;
+        }
+      }
       function showIP (dhcp) {
         var vis = "table";
         var dhcp_val = "off";
@@ -19,7 +43,7 @@
       }
     </script>    
   </head>
-  <body onload="showIP(document.getElementById('dhcpChk'))">
+  <body onload="initialLoad()">
     <h1>
       <div class="row">
         <div class="column">
@@ -42,87 +66,143 @@
         </div>
     </div>
     <br><br>
-    <form action="/successChange.html" method="get">
-        <table class="ip">
-          <tr>
-            <th class="first-col">
-              <label for="dhcp">DHCP</label>
-            </th>
-            <th>              
-              <input type="checkbox" class="form-input" id="dhcpChk" name="dhcpChk" onclick="showIP(this)">
-            </th>
-          </tr>  
-        </table><br><br>
-        <table class="ip" name="ipTable" id="ipTable">
-          <tr>
-            <th class="first-col">
-              <label for="ip">Indirizzo IP:</label>&emsp;
-            </th>
-            <th>
-              <input type="number" min="0" max="255" class="form-input" id="ip1" name="ip1">
-              <input type="number" min="0" max="255" class="form-input" id="ip2" name="ip2">
-              <input type="number" min="0" max="255" class="form-input" id="ip3" name="ip3">
-              <input type="number" min="0" max="255" class="form-input" id="ip4" name="ip4">
-            </th>
-          </tr>  
-        </table><br><br>
-        <table class="ip" name="snTable" id="snTable">
-          <tr>
-            <th class="first-col">
-              <label for="sn">Subnet Mask:</label>&emsp;        
-            </th>
-            <th>
-              <input type="number" min="0" max="255" class="form-input" id="sn1" name="sn1">
-              <input type="number" min="0" max="255" class="form-input" id="sn2" name="sn2">
-              <input type="number" min="0" max="255" class="form-input" id="sn3" name="sn3">
-              <input type="number" min="0" max="255" class="form-input" id="sn4" name="sn4">
-            </th>
-          </tr>  
-        </table><br><br>
-        <table class="ip" name="gwTable" id="gwTable">
-          <tr>
-            <th class="first-col">
-              <label for="gw">Gateway:</label>&emsp;&emsp;&emsp;
-            </th>
-            <th>
-              <input type="number" min="0" max="255" class="form-input" id="gw1" name="gw1">
-              <input type="number" min="0" max="255" class="form-input" id="gw2" name="gw2">
-              <input type="number" min="0" max="255" class="form-input" id="gw3" name="gw3">
-              <input type="number" min="0" max="255" class="form-input" id="gw4" name="gw4">
-            </th>
-          </tr>  
-        </table><br><br><br><br>        
-        <table class="ip">
-          <tr>
-            <th class="first-col">
-              <label for="plantId">ID Impianto:</label>
-            </th>
-            <th>
-              <input class="second-col" type="number" min="0" max="65535" class="form-input" id="plantId" name="plantId" >
-            </th>
-          </tr>  
-        </table><br><br><br><br>
-        <table class="ip">
-          <tr>
-            <th class="first-col">
-              <label for="plantLabel">Etichetta Impianto:</label>
-            </th>
-            <th>
-              <input class="second-col" type="text" class="form-input" id="plantLabel" name="plantLabel" >
-            </th>
-          </tr>  
-        </table><br><br><br><br>
-        <table class="ip">
-          <tr>
-            <th class="first-col">
-              <label for="apn">APN SIM:</label>
-            </th>
-            <th>
-              <input class="second-col" type="text" class="form-input" id="apn" name="apn">
-            </th>
-          </tr>  
-        </table><br><br>        
-        <button class="submit" type="submit" formmethod="post">Invia</button>
-    </form>  
+    <!-- Tab links -->
+    <div class="tab">
+      <button class="tablinks" onclick="openTab('network')">Rete</button>
+      <button class="tablinks" onclick="openTab('output')">Uscite</button>
+      <button class="tablinks" onclick="openTab('credentials')">Credenziali</button>
+    </div>
+
+    <!-- Tab content: network -->
+    <div id="network" class="tabcontent">
+      <h3>Rete</h3>
+        <form action="/successChange.html" method="get">
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label for="dhcp">DHCP</label>
+              </th>
+              <th>              
+                <input type="checkbox" class="form-input" id="dhcpChk" name="dhcpChk" onclick="showIP(this)">
+              </th>
+            </tr>  
+          </table><br><br>
+          <table class="ip" name="ipTable" id="ipTable">
+            <tr>
+              <th class="first-col">
+                <label for="ip">Indirizzo IP:</label>&emsp;
+              </th>
+              <th>
+                <input type="number" min="0" max="255" class="form-input" id="ip1" name="ip1">
+                <input type="number" min="0" max="255" class="form-input" id="ip2" name="ip2">
+                <input type="number" min="0" max="255" class="form-input" id="ip3" name="ip3">
+                <input type="number" min="0" max="255" class="form-input" id="ip4" name="ip4">
+              </th>
+            </tr>  
+          </table><br><br>
+          <table class="ip" name="snTable" id="snTable">
+            <tr>
+              <th class="first-col">
+                <label for="sn">Subnet Mask:</label>&emsp;        
+              </th>
+              <th>
+                <input type="number" min="0" max="255" class="form-input" id="sn1" name="sn1">
+                <input type="number" min="0" max="255" class="form-input" id="sn2" name="sn2">
+                <input type="number" min="0" max="255" class="form-input" id="sn3" name="sn3">
+                <input type="number" min="0" max="255" class="form-input" id="sn4" name="sn4">
+              </th>
+            </tr>  
+          </table><br><br>
+          <table class="ip" name="gwTable" id="gwTable">
+            <tr>
+              <th class="first-col">
+                <label for="gw">Gateway:</label>&emsp;&emsp;&emsp;
+              </th>
+              <th>
+                <input type="number" min="0" max="255" class="form-input" id="gw1" name="gw1">
+                <input type="number" min="0" max="255" class="form-input" id="gw2" name="gw2">
+                <input type="number" min="0" max="255" class="form-input" id="gw3" name="gw3">
+                <input type="number" min="0" max="255" class="form-input" id="gw4" name="gw4">
+              </th>
+            </tr>  
+          </table><br><br><br><br>        
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label for="plantId">ID Impianto:</label>
+              </th>
+              <th>
+                <input class="second-col" type="number" min="0" max="65535" class="form-input" id="plantId" name="plantId" >
+              </th>
+            </tr>  
+          </table><br><br><br><br>
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label for="plantLabel">Etichetta Impianto:</label>
+              </th>
+              <th>
+                <input class="second-col" type="text" class="form-input" id="plantLabel" name="plantLabel" >
+              </th>
+            </tr>  
+          </table><br><br><br><br>
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label for="apn">APN SIM:</label>
+              </th>
+              <th>
+                <input class="second-col" type="text" class="form-input" id="apn" name="apn">
+              </th>
+            </tr>  
+          </table><br><br>        
+          <button class="submit" type="submit" formmethod="post">Invia</button>
+      </form>
+    </div>
+    <!-- Tab content: output -->
+    <div id="output" class="tabcontent">
+      <h3>Uscite</h3>
+      
+    </div>
+    <!-- Tab content: credentials -->
+    <div id="credentials" class="tabcontent">
+      <h3>Credenziali</h3>
+        <form action="/successChange.html" method="get">
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label for="dhcp">Utente</label>
+              </th>
+              <th>              
+                <input type="text" class="form-input" id="user" name="user">
+              </th>
+            </tr>  
+            <tr>
+              <th class="first-col">
+                <label>Vecchia Password:</label>&emsp;
+              </th>
+              <th>
+                <input type="text" class="form-input" id="oldPwd" name="oldPwd">
+              </th>
+            </tr>
+            <tr>
+              <th class="first-col">
+                <label>Nuova Password:</label>&emsp;
+              </th>
+              <th>
+                <input type="text" class="form-input" id="newPwd" name="newPwd">
+              </th>
+            </tr>  
+            <tr>
+              <th class="first-col">
+                <label>Conferma Nuova Password:</label>&emsp;
+              </th>
+              <th>
+                <input type="text" class="form-input" id="newPwd2" name="newPwd2">
+              </th>
+            </tr>
+          </table><br><br>        
+          <button class="submit" type="submit" formmethod="post">Invia</button>
+    </div>
   </body>
 </html>
