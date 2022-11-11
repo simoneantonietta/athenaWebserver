@@ -761,8 +761,8 @@ void changeIsiConf(isiFormValues_t * isiParam)
 				;		
 			strncpy(newString,tmpString,i+strlen("\"central\":{"));			// copy first part
 			newString[i+strlen("\"central\":{")] = '\0';					// add terminator					
-			sprintf(newString,"%s\"centralType\":\"%s\",",				newString,isiParam->centralType);
-			sprintf(newString,"%s\"centralModel\":\"%s\",",				newString,isiParam->centralModel);
+			sprintf(newString,"%s\"type\":\"%s\",",				newString,isiParam->centralType);
+			sprintf(newString,"%s\"model\":\"%s\",",				newString,isiParam->centralModel);
 			sprintf(newString,"%s\"connection\":\"%s\",",				newString,isiParam->centralParam.connection);
 			sprintf(newString,"%s\"serialPort\":%d,",					newString,isiParam->centralParam.serialPort);
 			sprintf(newString,"%s\"plant\":%d,",						newString,isiParam->centralParam.plant);
@@ -779,7 +779,7 @@ void changeIsiConf(isiFormValues_t * isiParam)
 			sprintf(newString,"%s\"inputBalance\":%d},\"in\":[",		newString,isiParam->centralParam.inputBalance);	
 			for(j=0;j<8;j++)
 			{
-				sprintf(newString,"%s{\"idx\":%d\",",					newString,j);	
+				sprintf(newString,"%s{\"idx\":%d,",					newString,j);	
 				sprintf(newString,"%s\"tipo\":%d,",						newString,isiParam->centralParam.inputBalance);
 				sprintf(newString,"%s\"h24\":%d,",						newString,isiParam->inputs[j].allDayActive);	
 				sprintf(newString,"%s\"ritardo\":%d,",					newString,isiParam->inputs[j].delay);
@@ -788,9 +788,9 @@ void changeIsiConf(isiFormValues_t * isiParam)
 				sprintf(newString,"%s\"descr\":\"%s\",",				newString,isiParam->inputs[j].description);												
 				sprintf(newString,"%s\"restore\":%d,",					newString,isiParam->inputs[j].restore);
 				if(j==7)
-					sprintf(newString,"%s\"cond\":%d",					newString,isiParam->inputs[j].restoreCondition);
+					sprintf(newString,"%s\"cond\":%d}",					newString,isiParam->inputs[j].restoreCondition);
 				else
-					sprintf(newString,"%s\"cond\":%d,",					newString,isiParam->inputs[j].restoreCondition);
+					sprintf(newString,"%s\"cond\":%d},",					newString,isiParam->inputs[j].restoreCondition);
 			}
 
 			
@@ -1012,7 +1012,7 @@ void b64_encode(char *clrstr, char *b64dst) {
 void fillPage(struct file_data *page, char *pageName)
 {
 	FILE * fd;
-	char tmpString[4096], *pageFilled, *pageRow, addressString[22], paramFound=0, valStr[64];
+	char tmpString[4096], *pageFilled, *pageRow, addressString[22], paramFound=0, valStr[64], *tmpPointer;
 	unsigned int networkParams[13];
 	unsigned int idx=0, newPageIndex=0, i, old_pageRowIdx;
 	unsigned char changeRes;
@@ -1028,10 +1028,10 @@ void fillPage(struct file_data *page, char *pageName)
 		fd = fopen("webserver.sav","r");		
 		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 		{
-			if(strstr(tmpString,"\"centralPage\":{")!=NULL)
+			if(strstr(tmpString,"\"central\":{")!=NULL)
 			{
-				extractValFromJson(tmpString, "centralType", central.centralType, STRING_TYPE);
-				extractValFromJson(tmpString, "centralModel", central.centralModel, STRING_TYPE);
+				extractValFromJson(tmpString, "type", central.centralType, STRING_TYPE);				
+				extractValFromJson(tmpString, "model", central.centralModel, STRING_TYPE);
 				extractValFromJson(tmpString, "connection", central.centralParam.connection, STRING_TYPE);
 				central.centralParam.serialPort = extractValFromJson(tmpString, "serialPort", NULL, INT_TYPE);				 
 				central.centralParam.plant = extractValFromJson(tmpString, "plant", NULL, INT_TYPE);				 
@@ -1052,20 +1052,18 @@ void fillPage(struct file_data *page, char *pageName)
 				central.centralParam.inputBalance = extractValFromJson(tmpString, "inputBalance", NULL, INT_TYPE);				 
 				for(i=0;i<8;i++)
 				{
-					sprintf(valStr,"function%d",i);
-					central.inputs[i].function = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
-					sprintf(valStr,"description%d",i);
-					extractValFromJson(tmpString, valStr, central.inputs[i].description, STRING_TYPE);
-					sprintf(valStr,"allDayActive%d",i);
-					central.inputs[i].allDayActive = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
-					sprintf(valStr,"delay%d",i);
-					central.inputs[i].delay = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
-					sprintf(valStr,"delayType%d",i);
-					central.inputs[i].delayType = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
-					sprintf(valStr,"restore%d",i);
-					central.inputs[i].restore = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);
-					sprintf(valStr,"restoreCondition%d",i);
-					central.inputs[i].restoreCondition = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);									
+					sprintf(valStr,"\"idx\":%d",i);
+					tmpPointer = strstr(tmpString,valStr);
+					if(tmpPointer!=NULL)
+					{
+						central.inputs[i].function = extractValFromJson(tmpString, "tipo", NULL, INT_TYPE);
+						extractValFromJson(tmpString, "descr", central.inputs[i].description, STRING_TYPE);
+						central.inputs[i].allDayActive = extractValFromJson(tmpString, "h24", NULL, INT_TYPE);
+						central.inputs[i].delay = extractValFromJson(tmpString, "ritardo", NULL, INT_TYPE);
+						central.inputs[i].delayType = extractValFromJson(tmpString, "tipo_rit", NULL, INT_TYPE);
+						central.inputs[i].restore = extractValFromJson(tmpString, "ripristino", NULL, INT_TYPE);
+						central.inputs[i].restoreCondition = extractValFromJson(tmpString, "cond", NULL, INT_TYPE);									
+					}
 				}		
 			}						
 		}		
