@@ -158,12 +158,12 @@ void handle_http_request(int fd/*, struct cache *cache*/)
         
         requestKind = strtok(request," ");
         requestResource = strtok(NULL," ");
-        sprintf(logString, "Kind of request:%s\tResource requested:%s\n",requestKind,requestResource);        
-        printf(logString);       
+        //sprintf(logString, "Kind of request:%s\tResource requested:%s\n",requestKind,requestResource);        
+        //printf(logString);       
         if(strcmp(requestKind,"GET")==0) 
         {
-            printf("GET detected\n");
-            Log("/tmp/webserver.log","GET detected\n");
+            //printf("GET detected\n");
+            //Log("/tmp/webserver.log","GET detected\n");
 
             // Fetch the file requested 
             snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, requestResource);
@@ -234,8 +234,8 @@ void handle_http_request(int fd/*, struct cache *cache*/)
         }
         else if(strcmp(requestKind,"POST")==0) 
         {
-            printf("POST detected\n");
-            Log("/tmp/webserver.log","POST detected\n");              
+            //printf("POST detected\n");
+            //Log("/tmp/webserver.log","POST detected\n");              
 
             if(strstr(request_cpy,"parametri_di_sistema.html") != NULL)
             {
@@ -365,9 +365,9 @@ int main(void)
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
             (char *)s, sizeof s);
-        printf("server: got connection from %s\n", s);
-        sprintf(tmpString, "server: got connection from %s\n", s);
-        Log("/tmp/webserver.log",tmpString);
+        //printf("server: got connection from %s\n", s);
+        //sprintf(tmpString, "server: got connection from %s\n", s);
+        //Log("/tmp/webserver.log",tmpString);
 
         for(i=0,hostFound=0;i<MAX_HOSTS && hostFound==0;i++)
         {

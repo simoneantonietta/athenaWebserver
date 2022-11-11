@@ -107,7 +107,12 @@ typedef struct{
 	char normalState;
 	char duration;
 	char type;
+}outputValues_t;
+
+typedef struct{
+	outputValues_t out[5];
 }outFormValues_t;
+
 
 /* Index */
 int searchValIntoForm(char * form, char * param, char * result, unsigned char valType);
@@ -224,7 +229,7 @@ int searchValIntoForm(char * form, char * param, char * result, unsigned char va
 	{
 		for(valueLen=0;(valueLen<strlen(strValue))&&(strValue[valueLen]!='&');valueLen++)
 			;			
-		for(i=0;(strValue[i+strlen(param)]!='&') && (valueLen<strlen(strValue));i++)
+		for(i=0;(strValue[i+strlen(param)]!='&') && (i<valueLen);i++)
 			tmpValue[i] = strValue[i+strlen(param)];
 		tmpValue[i] = '\0';		
 		if(valType == 0)						// is a string
@@ -480,10 +485,15 @@ int parseCredentialForm(char* form, credentialFormValues_t * result)
 
 	//printf("\nThere are %d Parameters\n",nParam);
 	
+	printf("Form:%s\n",form);
+
 	searchValIntoForm(form, "oldPwd=", result->oldPassword, STRING_TYPE);
-	searchValIntoForm(form, "newPwd=", result->oldPassword, STRING_TYPE);
-	searchValIntoForm(form, "newPwd2=", result->oldPassword, STRING_TYPE);
-	searchValIntoForm(form, "user=", result->oldPassword, STRING_TYPE);
+	searchValIntoForm(form, "newPwd=", result->newPassword, STRING_TYPE);
+	searchValIntoForm(form, "newPwd2=", result->newPassword2, STRING_TYPE);
+	searchValIntoForm(form, "user=", result->username, STRING_TYPE);
+
+	printf("PARSING\nUser:%s\nPwd:%s\nPwd2:%s\noldPwd:%s\n",result->username,result->newPassword,result->newPassword2,result->oldPassword);
+
 
 	printf("Ho finito di parsificare le credenziali\n");
     return nParam;   
@@ -491,7 +501,35 @@ int parseCredentialForm(char* form, credentialFormValues_t * result)
 
 int parseOutputForm(char* form, outFormValues_t * result)
 {
-	return 1;
+	unsigned int i, nParam=0;
+	char tmpString[64];
+	
+	for(i=0; i<strlen(form);i++)
+	{
+		if(form[i]=='&')
+			nParam++;
+	}
+	if(nParam)
+		nParam++;
+
+	//printf("\nThere are %d Parameters\n",nParam);
+	
+	for(i=0;i<5;i++)
+	{
+		sprintf(tmpString,"descOut%d",i+1);
+		searchValIntoForm(form, tmpString, result->out[i].description, STRING_TYPE);	
+		sprintf(tmpString,"conditionOut%d",i+1);
+		result->out[i].condition = searchValIntoForm(form, tmpString, NULL, INT_TYPE);	
+		sprintf(tmpString,"normalStateOut%d",i+1);
+		result->out[i].normalState = searchValIntoForm(form, tmpString, NULL, INT_TYPE);	
+		sprintf(tmpString,"durationOut%d",i+1);
+		result->out[i].duration = searchValIntoForm(form, tmpString, NULL, INT_TYPE);	
+		sprintf(tmpString,"typeOut%d",i+1);
+		result->out[i].type = searchValIntoForm(form, tmpString, NULL, INT_TYPE);	
+	}
+
+	printf("Ho finito di parsificare le uscite\n");
+    return nParam;   
 }
 
 
@@ -721,6 +759,8 @@ int changeCredential(credentialFormValues_t * credentialParam)
 	}
 	password[i-index] = '\0';
 
+	printf("User:%s\nPwd:%s\nPwd2:%s\noldPwd:%s\n",credentialParam->username,credentialParam->newPassword,credentialParam->newPassword2,credentialParam->oldPassword);
+
 	if( (strcmp(credentialParam->username,username)==0)&&
 		(strcmp(credentialParam->oldPassword,password)==0)&&
 		(strcmp(credentialParam->newPassword,credentialParam->newPassword2)==0))
@@ -827,7 +867,7 @@ void fillPage(struct file_data *page, char *pageName)
 	isiFormValues_t central;
 
 	pageFilled = malloc(page->size + N_BYTES_PARAMS);
-	printf("Page size:%d\n",page->size);
+	//printf("Page size:%d\n",page->size);
 
 	if(strncmp(pageName,"/parametri_di_centrale.html",strlen("parametri_di_centrale"))==0)
 	{
@@ -874,8 +914,7 @@ void fillPage(struct file_data *page, char *pageName)
 					central.inputs[i].restoreCondition = extractValFromJson(tmpString, valStr, NULL, INT_TYPE);									
 				}		
 			}						
-		}
-		printf("Code:%s networkPort:%d\n", central.centralParam.code,central.centralParam.networkPort);
+		}		
 		pageRowIdx=0;
 		old_pageRowIdx=0;		
 		while(pageRowIdx<page->size)
