@@ -195,9 +195,11 @@ int extractValFromJson(char * json, char * searchStr, char * result, int type)
 		;
 	if(i<strlen(searchValStr))
 	{
-		i += 2;
+		i++;
+		if(searchValStr[i]=='"')			// the value searched is a string
+			i++;		
 		j=0;		
-		while((i<strlen(searchValStr))&&(searchValStr[i]!='"'))
+		while((i<strlen(searchValStr))&&(searchValStr[i]!='"')&&(searchValStr[i]!=',')&&(searchValStr[i]!='}'))
 		{
 			if(type == STRING_TYPE)		
 				result[j++] = searchValStr[i++];
@@ -689,10 +691,10 @@ void changeIsiConf(isiFormValues_t * isiParam)
 	fd_new = fopen("webserver.sav.new","w+");
 	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 	{
-		if(strstr(tmpString,"{\"central\":[")!=NULL)
+		if(strstr(tmpString,"\"central\":{")!=NULL)
 		{
 			tmpString[0] = '\0';
-			sprintf(tmpString,"{\"central\":[{");
+			sprintf(tmpString,"{\"central\":{");
 			sprintf(tmpString,"%s\"centralType\":\"%s\",",				tmpString,isiParam->centralType);
 			sprintf(tmpString,"%s\"centralModel\":\"%s\",",				tmpString,isiParam->centralModel);
 			sprintf(tmpString,"%s\"connection\":\"%s\",",				tmpString,isiParam->centralParam.connection);
@@ -717,12 +719,15 @@ void changeIsiConf(isiFormValues_t * isiParam)
 				sprintf(tmpString,"%s\"delay%d\":\"%d\",",				tmpString,i,isiParam->inputs[i].delay);
 				sprintf(tmpString,"%s\"delayType%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].delayType);
 				sprintf(tmpString,"%s\"restore%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].restore);
-				sprintf(tmpString,"%s\"restoreCondition%d\":\"%d\"",	tmpString,i,isiParam->inputs[i].restoreCondition);
+				if(i==7)
+					sprintf(tmpString,"%s\"restoreCondition%d\":\"%d\",",	tmpString,i,isiParam->inputs[i].restoreCondition);
+				else
+					sprintf(tmpString,"%s\"restoreCondition%d\":\"%d\"",	tmpString,i,isiParam->inputs[i].restoreCondition);
 			}
-			sprintf(tmpString,"%s}]}\n",tmpString);
+			sprintf(tmpString,"%s}}\n",tmpString);
 			
-			printf(tmpString);
-			Log("/tmp/webserver.log",tmpString);
+			//printf(tmpString);
+			//Log("/tmp/webserver.log",tmpString);
 		}
 		fprintf(fd_new,tmpString);
 	}
@@ -874,7 +879,7 @@ void fillPage(struct file_data *page, char *pageName)
 		fd = fopen("webserver.sav","r");		
 		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 		{
-			if(strstr(tmpString,"{\"central\":[")!=NULL)
+			if(strstr(tmpString,"\"central\":{")!=NULL)
 			{
 				extractValFromJson(tmpString, "centralType", central.centralType, STRING_TYPE);
 				extractValFromJson(tmpString, "centralModel", central.centralModel, STRING_TYPE);
