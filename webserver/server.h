@@ -37,6 +37,10 @@
 #define SELECT				0
 #define INPUT				1
 
+#define ALARM 				0
+#define DIAGNOSTIC 			1
+#define ALARM_DIAGNOSTIC 	2
+
 /* Enumeration */
 enum {COND_REMOTE=0, COND_ALARM, COND_SABOT, COND_FAIL, COND_EXCL, COND_BYPASS,
       COND_LOC_TAMPER, COND_LOC_POWERFAIL, COND_LOC_BATTFAIL};
@@ -91,7 +95,16 @@ typedef struct{
 }isiFormValues_t;
 
 typedef struct{
-	
+	char description[64];
+	char number[32];
+	char sms;
+	char voice;
+	char alertType;
+}phone_t;
+
+typedef struct{
+	char urlRegister[64];
+	phone_t phone[8];
 }svFormValues_t;
 
 typedef struct{
@@ -233,7 +246,7 @@ int searchValIntoForm(char * form, char * param, char * result, unsigned char va
 			;			
 		for(i=0;(strValue[i+strlen(param)]!='&') && (i<valueLen);i++)
 			tmpValue[i] = strValue[i+strlen(param)];
-		tmpValue[i] = '\0';		
+		tmpValue[i] = '\0';				
 		if(valType == 0)						// is a string
 		{						
 			strncpy(result,tmpValue,strlen(tmpValue));		
@@ -459,7 +472,8 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 int parseSupervisorForm(char* form, svFormValues_t * result)
 {
 	unsigned int i, nParam=0;
-	
+	char tmpString[64], tmpValue[64];
+
 	for(i=0; i<strlen(form);i++)
 	{
 		if(form[i]=='&')
@@ -468,7 +482,36 @@ int parseSupervisorForm(char* form, svFormValues_t * result)
 	if(nParam)
 		nParam++;
 
-	printf("\nThere are %d Parameters\n",nParam);	
+	//printf("\nThere are %d Parameters\n",nParam);
+	
+	searchValIntoForm(form, "urlRegister=", result->urlRegister, STRING_TYPE);
+	for(i=0;i<8;i++)
+	{
+		sprintf(tmpString,"descCell%d=",i+1);
+		searchValIntoForm(form, tmpString, result->phone[i].description, STRING_TYPE);
+		sprintf(tmpString,"cell%d=",i+1);
+		searchValIntoForm(form, tmpString, result->phone[i].number, STRING_TYPE);
+		sprintf(tmpString,"mexCell%d=",i+1);
+		searchValIntoForm(form, tmpString, tmpValue, STRING_TYPE);
+		if(strncmp(tmpValue,"on",strlen("on"))==0)
+			result->phone[i].sms = ON;
+		else
+			result->phone[i].sms = OFF;
+		sprintf(tmpString,"voiceCell%d=",i+1);
+		searchValIntoForm(form, tmpString, tmpValue, STRING_TYPE);
+		if(strncmp(tmpValue,"on",strlen("on"))==0)
+			result->phone[i].voice = ON;
+		else
+			result->phone[i].voice = OFF;
+		sprintf(tmpString,"alarmCell%d=",i+1);
+		searchValIntoForm(form, tmpString, tmpValue, STRING_TYPE);
+		if(strcmp(tmpValue,"alarm")==0)
+			result->phone[i].alertType = ALARM;
+		else if(strcmp(tmpValue,"diagnostic")==0)
+			result->phone[i].alertType = DIAGNOSTIC;
+		else if(strcmp(tmpValue,"alarm_diagnostic")==0)
+			result->phone[i].alertType = ALARM_DIAGNOSTIC;		
+	}
 
     return nParam;   
 }
@@ -698,31 +741,31 @@ void changeIsiConf(isiFormValues_t * isiParam)
 			sprintf(tmpString,"%s\"centralType\":\"%s\",",				tmpString,isiParam->centralType);
 			sprintf(tmpString,"%s\"centralModel\":\"%s\",",				tmpString,isiParam->centralModel);
 			sprintf(tmpString,"%s\"connection\":\"%s\",",				tmpString,isiParam->centralParam.connection);
-			sprintf(tmpString,"%s\"serialPort\":\"%d\",",				tmpString,isiParam->centralParam.serialPort);
-			sprintf(tmpString,"%s\"plant\":\"%d\",",					tmpString,isiParam->centralParam.plant);
-			sprintf(tmpString,"%s\"address\":\"%d\",",					tmpString,isiParam->centralParam.address);
-			sprintf(tmpString,"%s\"baudrate\":\"%d\",",					tmpString,isiParam->centralParam.baudrate);
+			sprintf(tmpString,"%s\"serialPort\":%d,",					tmpString,isiParam->centralParam.serialPort);
+			sprintf(tmpString,"%s\"plant\":%d,",						tmpString,isiParam->centralParam.plant);
+			sprintf(tmpString,"%s\"address\":%d,",						tmpString,isiParam->centralParam.address);
+			sprintf(tmpString,"%s\"baudrate\":%d,",						tmpString,isiParam->centralParam.baudrate);
 			sprintf(tmpString,"%s\"ip\":\"%d.%d.%d.%d\",",				tmpString,isiParam->centralParam.ip.addr1,isiParam->centralParam.ip.addr2,isiParam->centralParam.ip.addr3,isiParam->centralParam.ip.addr4);
-			sprintf(tmpString,"%s\"networkPort\":\"%d\",",				tmpString,isiParam->centralParam.networkPort);
-			sprintf(tmpString,"%s\"numeration\":\"%d\",",				tmpString,isiParam->centralParam.numeration);	
+			sprintf(tmpString,"%s\"networkPort\":%d,",					tmpString,isiParam->centralParam.networkPort);
+			sprintf(tmpString,"%s\"numeration\":%d,",					tmpString,isiParam->centralParam.numeration);	
 			sprintf(tmpString,"%s\"code\":\"%s\",",						tmpString,isiParam->centralParam.code);
 			sprintf(tmpString,"%s\"passphrase\":\"%s\",",				tmpString,isiParam->centralParam.passphrase);
 			sprintf(tmpString,"%s\"id\":\"%s\",",						tmpString,isiParam->centralParam.id);
-			sprintf(tmpString,"%s\"registerDimension\":\"%d\",",		tmpString,isiParam->centralParam.registerDimension);
-			sprintf(tmpString,"%s\"polling\":\"%d\",",					tmpString,isiParam->centralParam.polling);
-			sprintf(tmpString,"%s\"inputBalance\":\"%d\",",				tmpString,isiParam->centralParam.inputBalance);	
+			sprintf(tmpString,"%s\"registerDimension\":%d,",			tmpString,isiParam->centralParam.registerDimension);
+			sprintf(tmpString,"%s\"polling\":%d,",						tmpString,isiParam->centralParam.polling);
+			sprintf(tmpString,"%s\"inputBalance\":%d,",					tmpString,isiParam->centralParam.inputBalance);	
 			for(i=0;i<8;i++)
 			{
-				sprintf(tmpString,"%s\"function%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].function);	
+				sprintf(tmpString,"%s\"function%d\":%d,",				tmpString,i,isiParam->inputs[i].function);	
 				sprintf(tmpString,"%s\"description%d\":\"%s\",",		tmpString,i,isiParam->inputs[i].description);
-				sprintf(tmpString,"%s\"allDayActive%d\":\"%d\",",		tmpString,i,isiParam->inputs[i].allDayActive);
-				sprintf(tmpString,"%s\"delay%d\":\"%d\",",				tmpString,i,isiParam->inputs[i].delay);
-				sprintf(tmpString,"%s\"delayType%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].delayType);
-				sprintf(tmpString,"%s\"restore%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].restore);
+				sprintf(tmpString,"%s\"allDayActive%d\":%d,",			tmpString,i,isiParam->inputs[i].allDayActive);
+				sprintf(tmpString,"%s\"delay%d\":%d,",					tmpString,i,isiParam->inputs[i].delay);
+				sprintf(tmpString,"%s\"delayType%d\":%d,",				tmpString,i,isiParam->inputs[i].delayType);
+				sprintf(tmpString,"%s\"restore%d\":%d,",				tmpString,i,isiParam->inputs[i].restore);
 				if(i==7)
-					sprintf(tmpString,"%s\"restoreCondition%d\":\"%d\"",	tmpString,i,isiParam->inputs[i].restoreCondition);
+					sprintf(tmpString,"%s\"restoreCondition%d\":%d",	tmpString,i,isiParam->inputs[i].restoreCondition);
 				else
-					sprintf(tmpString,"%s\"restoreCondition%d\":\"%d\",",	tmpString,i,isiParam->inputs[i].restoreCondition);
+					sprintf(tmpString,"%s\"restoreCondition%d\":%d,",	tmpString,i,isiParam->inputs[i].restoreCondition);
 			}
 			sprintf(tmpString,"%s}}\n",tmpString);
 			
@@ -740,7 +783,45 @@ void changeIsiConf(isiFormValues_t * isiParam)
 
 void changeSV(svFormValues_t * svParam)
 {
+	char tmpString[4096], newString[4096];
+	unsigned int i,j;
+	FILE *fd, *fd_new;
 
+	/* Save values into file */
+	fd = fopen("webserver.sav","r");
+	fd_new = fopen("webserver.sav.new","w+");
+	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
+	{
+		if(strstr(tmpString,"\"sv\":{")!=NULL)
+		{
+			for(i=0;i<strlen(tmpString)&&(strncmp(&(tmpString[i]),"\"sv\":{",strlen("\"sv\":{"))!=0);i++)
+				;		
+			strncpy(newString,tmpString,i+strlen("\"sv\":{"));			// copy first part
+			newString[i+strlen("\"sv\":{")] = '\0';						// add terminator
+			sprintf(newString,"%s\"urlRegister\":\"%s\",",					newString,svParam->urlRegister);
+			for(j=0;j<8;j++)
+			{
+				sprintf(newString,"%s\"description%d\":\"%s\",",			newString,j,svParam->phone[j].description);	
+				sprintf(newString,"%s\"number%d\":\"%s\",",					newString,j,svParam->phone[j].number);	
+				sprintf(newString,"%s\"sms%d\":%d,",						newString,j,svParam->phone[j].sms);	
+				sprintf(newString,"%s\"voice%d\":%d,",						newString,j,svParam->phone[j].voice);	
+				if(j==7)
+					sprintf(newString,"%s\"alertType%d\":%d",				newString,j,svParam->phone[j].alertType);
+				else
+					sprintf(newString,"%s\"alertType%d\":%d,",				newString,j,svParam->phone[j].alertType);
+			}
+			while(tmpString[i]!='}' && i<strlen(tmpString))				// search end of param in original string
+				i++;			
+			for(j=strlen(newString);i<strlen(tmpString);i++,j++)		// copy final part
+				newString[j] = tmpString[i];
+			newString[j] = '\0';
+		}
+		fprintf(fd_new,newString);
+	}
+
+	fclose(fd);
+	fclose(fd_new);
+	system("mv webserver.sav.new webserver.sav");
 }
 
 int changeCredential(credentialFormValues_t * credentialParam)
@@ -780,7 +861,7 @@ int changeCredential(credentialFormValues_t * credentialParam)
 	return returnVal;
 }
 
-int changeOut(outFormValues_t * credentialParam)
+int changeOut(outFormValues_t * outParam)
 {
 	return 1;
 }
@@ -1005,7 +1086,7 @@ void fillPage(struct file_data *page, char *pageName)
 				changeRes |= (~changeValInHtmlPage(pageRow,NULL,tmpString,pageFilled,&newPageIndex,SELECT))&0x01;
 				if(strcmp(central.centralType,"local")==0)
 				{
-
+/* TO BE DONE */
 				}	
 				if(changeRes == 0)															// no value found
 					newPageIndex += pageRowIdx - old_pageRowIdx + 1;									
