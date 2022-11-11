@@ -720,9 +720,9 @@ void changeIsiConf(isiFormValues_t * isiParam)
 				sprintf(tmpString,"%s\"delayType%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].delayType);
 				sprintf(tmpString,"%s\"restore%d\":\"%d\",",			tmpString,i,isiParam->inputs[i].restore);
 				if(i==7)
-					sprintf(tmpString,"%s\"restoreCondition%d\":\"%d\",",	tmpString,i,isiParam->inputs[i].restoreCondition);
-				else
 					sprintf(tmpString,"%s\"restoreCondition%d\":\"%d\"",	tmpString,i,isiParam->inputs[i].restoreCondition);
+				else
+					sprintf(tmpString,"%s\"restoreCondition%d\":\"%d\",",	tmpString,i,isiParam->inputs[i].restoreCondition);
 			}
 			sprintf(tmpString,"%s}}\n",tmpString);
 			
