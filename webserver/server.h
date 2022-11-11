@@ -101,17 +101,30 @@ typedef struct{
 	char newPassword2[64];
 }credentialFormValues_t;
 
+typedef struct{
+	char description[64];
+	char condition;
+	char normalState;
+	char duration;
+	char type;
+}outFormValues_t;
+
 /* Index */
 int searchValIntoForm(char * form, char * param, char * result, unsigned char valType);
 void Log(char *filename, char *content);
+
 int parseSystemForm(char* form, ipFormValues_t * result);
 int parseCentralForm(char* form, isiFormValues_t * result);
 int parseSupervisorForm(char* form, svFormValues_t * result);
 int parseCredentialForm(char* form, credentialFormValues_t * result);
+int parseOutputForm(char* form, outFormValues_t * result);
+
 void changeIP(ipFormValues_t * networkParam);
 void changeIsiConf(isiFormValues_t * networkParam);
 void changeSV(svFormValues_t * networkParam);
 int changeCredential(credentialFormValues_t * credentialParam);
+int changeOut(outFormValues_t * credentialParam);
+
 void b64_encode(char *clrstr, char *b64dst);
 void b64_decode(char *b64src, char *clrdst);
 void fillPage(struct file_data *page, char *pageName);
@@ -476,6 +489,12 @@ int parseCredentialForm(char* form, credentialFormValues_t * result)
     return nParam;   
 }
 
+int parseOutputForm(char* form, outFormValues_t * result)
+{
+	return 1;
+}
+
+
 void changeIP(ipFormValues_t * networkParam)
 {
 	FILE * fd = fopen("/etc/network/network.conf","r");
@@ -537,7 +556,7 @@ void changeIP(ipFormValues_t * networkParam)
 		fd = fopen("/etc/network/network.conf","w");	
 		if(fd != NULL)
 		{
-			for(i=0;i<index;i++)
+			for(i=0;i<index-1;i++)
 				fwrite(networkFile[i],1,strlen(networkFile[i]),fd);
 
 			fclose(fd);	
@@ -714,6 +733,11 @@ int changeCredential(credentialFormValues_t * credentialParam)
 	}
 
 	return returnVal;
+}
+
+int changeOut(outFormValues_t * credentialParam)
+{
+	return 1;
 }
 
 

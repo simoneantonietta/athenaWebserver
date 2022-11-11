@@ -75,134 +75,436 @@
 
     <!-- Tab content: network -->
     <div id="network" class="tabcontent">
-      <h3>Rete</h3>
-        <form action="/successChange.html" method="get">
-          <table class="ip">
-            <tr>
-              <th class="first-col">
-                <label for="dhcp">DHCP</label>
-              </th>
-              <th>              
-                <input type="checkbox" class="form-input" id="dhcpChk" name="dhcpChk" onclick="showIP(this)">
-              </th>
-            </tr>  
-          </table><br><br>
-          <table class="ip" name="ipTable" id="ipTable">
-            <tr>
-              <th class="first-col">
-                <label for="ip">Indirizzo IP:</label>&emsp;
-              </th>
-              <th>
-                <input type="number" min="0" max="255" class="form-input" id="ip1" name="ip1">
-                <input type="number" min="0" max="255" class="form-input" id="ip2" name="ip2">
-                <input type="number" min="0" max="255" class="form-input" id="ip3" name="ip3">
-                <input type="number" min="0" max="255" class="form-input" id="ip4" name="ip4">
-              </th>
-            </tr>  
-          </table><br><br>
-          <table class="ip" name="snTable" id="snTable">
-            <tr>
-              <th class="first-col">
-                <label for="sn">Subnet Mask:</label>&emsp;        
-              </th>
-              <th>
-                <input type="number" min="0" max="255" class="form-input" id="sn1" name="sn1">
-                <input type="number" min="0" max="255" class="form-input" id="sn2" name="sn2">
-                <input type="number" min="0" max="255" class="form-input" id="sn3" name="sn3">
-                <input type="number" min="0" max="255" class="form-input" id="sn4" name="sn4">
-              </th>
-            </tr>  
-          </table><br><br>
-          <table class="ip" name="gwTable" id="gwTable">
-            <tr>
-              <th class="first-col">
-                <label for="gw">Gateway:</label>&emsp;&emsp;&emsp;
-              </th>
-              <th>
-                <input type="number" min="0" max="255" class="form-input" id="gw1" name="gw1">
-                <input type="number" min="0" max="255" class="form-input" id="gw2" name="gw2">
-                <input type="number" min="0" max="255" class="form-input" id="gw3" name="gw3">
-                <input type="number" min="0" max="255" class="form-input" id="gw4" name="gw4">
-              </th>
-            </tr>  
-          </table><br><br><br><br>        
-          <table class="ip">
-            <tr>
-              <th class="first-col">
-                <label for="plantId">ID Impianto:</label>
-              </th>
-              <th>
-                <input class="second-col" type="number" min="0" max="65535" class="form-input" id="plantId" name="plantId" >
-              </th>
-            </tr>  
-          </table><br><br><br><br>
-          <table class="ip">
-            <tr>
-              <th class="first-col">
-                <label for="plantLabel">Etichetta Impianto:</label>
-              </th>
-              <th>
-                <input class="second-col" type="text" class="form-input" id="plantLabel" name="plantLabel" >
-              </th>
-            </tr>  
-          </table><br><br><br><br>
-          <table class="ip">
-            <tr>
-              <th class="first-col">
-                <label for="apn">APN SIM:</label>
-              </th>
-              <th>
-                <input class="second-col" type="text" class="form-input" id="apn" name="apn">
-              </th>
-            </tr>  
-          </table><br><br>        
-          <button class="submit" type="submit" formmethod="post">Invia</button>
-      </form>
+      <h3>Rete</h3>      
+      <form action="/successChange.html" method="get">
+        <input type="text" class="form-input" id="page" name="page" value="network" style="display: none">     <!-- pass to backend -->
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="dhcp">DHCP</label>
+            </th>
+            <th>              
+              <input type="checkbox" class="form-input" id="dhcpChk" name="dhcpChk" onclick="showIP(this)">
+            </th>
+          </tr>  
+        </table><br><br>
+        <table class="ip" name="ipTable" id="ipTable">
+          <tr>
+            <th class="first-col">
+              <label for="ip">Indirizzo IP:</label>&emsp;
+            </th>
+            <th>
+              <input type="number" min="0" max="255" class="form-input" id="ip1" name="ip1">
+              <input type="number" min="0" max="255" class="form-input" id="ip2" name="ip2">
+              <input type="number" min="0" max="255" class="form-input" id="ip3" name="ip3">
+              <input type="number" min="0" max="255" class="form-input" id="ip4" name="ip4">
+            </th>
+          </tr>  
+        </table><br><br>
+        <table class="ip" name="snTable" id="snTable">
+          <tr>
+            <th class="first-col">
+              <label for="sn">Subnet Mask:</label>&emsp;        
+            </th>
+            <th>
+              <input type="number" min="0" max="255" class="form-input" id="sn1" name="sn1">
+              <input type="number" min="0" max="255" class="form-input" id="sn2" name="sn2">
+              <input type="number" min="0" max="255" class="form-input" id="sn3" name="sn3">
+              <input type="number" min="0" max="255" class="form-input" id="sn4" name="sn4">
+            </th>
+          </tr>  
+        </table><br><br>
+        <table class="ip" name="gwTable" id="gwTable">
+          <tr>
+            <th class="first-col">
+              <label for="gw">Gateway:</label>&emsp;&emsp;&emsp;
+            </th>
+            <th>
+              <input type="number" min="0" max="255" class="form-input" id="gw1" name="gw1">
+              <input type="number" min="0" max="255" class="form-input" id="gw2" name="gw2">
+              <input type="number" min="0" max="255" class="form-input" id="gw3" name="gw3">
+              <input type="number" min="0" max="255" class="form-input" id="gw4" name="gw4">
+            </th>
+          </tr>  
+        </table><br><br><br><br>        
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="plantId">ID Impianto:</label>
+            </th>
+            <th>
+              <input class="second-col" type="number" min="0" max="65535" class="form-input" id="plantId" name="plantId" >
+            </th>
+          </tr>  
+        </table><br><br><br><br>
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="plantLabel">Etichetta Impianto:</label>
+            </th>
+            <th>
+              <input class="second-col" type="text" class="form-input" id="plantLabel" name="plantLabel" >
+            </th>
+          </tr>  
+        </table><br><br><br><br>
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="apn">APN SIM:</label>
+            </th>
+            <th>
+              <input class="second-col" type="text" class="form-input" id="apn" name="apn">
+            </th>
+          </tr>  
+        </table><br><br>        
+        <button class="submit" type="submit" formmethod="post">Invia</button>
+    </form>
     </div>
     <!-- Tab content: output -->
     <div id="output" class="tabcontent">
       <h3>Uscite</h3>
-      
+      <form action="/successChange.html" method="get">
+        <input type="text" class="form-input" id="page" name="page" value="output" style="display: none">     <!-- pass to backend -->
+        <div>
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label>Uscita1</label>
+              </th>
+              <th class="central-col">
+                <button>ON</button>
+              </th>
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Descrizione</th>
+              <th class="central-col">              
+                <input type="text" class="form-input" id="descOut1" name="descOut1">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Condizione</th>
+              <th class="central-col">              
+                <select name="conditionOut1" id="conditionOut1">
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
+                  <option value="diagnostic">Autodiagnosi</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Stato a Riposo</th>
+              <th class="central-col">              
+                <select name="normalStateOut1" id="normalStateOut1">
+                  <option value="off">Off</option>
+                  <option value="on">On</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Durata</th>
+              <th class="central-col">              
+                <input type="number" min="0" max="3600" class="form-input" id="durationOut1" name="durationOut1">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Tipo</th>
+              <th class="central-col">              
+                <select name="typeOut1" id="typeOut1">
+                  <option value="continuous">Continuo</option>
+                  <option value="followState">Segue Stato</option>
+                </select>
+              </th>  
+            </tr>
+          </table>
+        </div>  
+        <div>
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label>Uscita2</label>
+              </th>
+              <th class="central-col">
+                <button>ON</button>
+              </th>
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Descrizione</th>
+              <th class="central-col">              
+                <input type="text" class="form-input" id="descOut2" name="descOut2">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Condizione</th>
+              <th class="central-col">              
+                <select name="conditionOut2" id="conditionOut2">
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
+                  <option value="diagnostic">Autodiagnosi</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Stato a Riposo</th>
+              <th class="central-col">              
+                <select name="normalStateOut2" id="normalStateOut2">
+                  <option value="off">Off</option>
+                  <option value="on">On</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Durata</th>
+              <th class="central-col">              
+                <input type="number" min="0" max="3600" class="form-input" id="durationOut2" name="durationOut2">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Tipo</th>
+              <th class="central-col">              
+                <select name="typeOut2" id="typeOut2">
+                  <option value="continuous">Continuo</option>
+                  <option value="followState">Segue Stato</option>
+                </select>
+              </th>  
+            </tr>
+          </table>
+        </div>      
+        <div>
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label>Uscita3</label>
+              </th>
+              <th class="central-col">
+                <button>ON</button>
+              </th>
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Descrizione</th>
+              <th class="central-col">              
+                <input type="text" class="form-input" id="descOut3" name="descOut3">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Condizione</th>
+              <th class="central-col">              
+                <select name="conditionOut3" id="conditionOut3">
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
+                  <option value="diagnostic">Autodiagnosi</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Stato a Riposo</th>
+              <th class="central-col">              
+                <select name="normalStateOut3" id="normalStateOut3">
+                  <option value="off">Off</option>
+                  <option value="on">On</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Durata</th>
+              <th class="central-col">              
+                <input type="number" min="0" max="3600" class="form-input" id="durationOut3" name="durationOut3">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Tipo</th>
+              <th class="central-col">              
+                <select name="typeOut3" id="typeOut3">
+                  <option value="continuous">Continuo</option>
+                  <option value="followState">Segue Stato</option>
+                </select>
+              </th>  
+            </tr>
+          </table>
+        </div>  
+        <div>
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label>Uscita4</label>
+              </th>
+              <th class="central-col">
+                <button>ON</button>
+              </th>
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Descrizione</th>
+              <th class="central-col">              
+                <input type="text" class="form-input" id="descOut4" name="descOut4">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Condizione</th>
+              <th class="central-col">              
+                <select name="conditionOut4" id="conditionOut4">
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
+                  <option value="diagnostic">Autodiagnosi</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Stato a Riposo</th>
+              <th class="central-col">              
+                <select name="normalStateOut4" id="normalStateOut4">
+                  <option value="off">Off</option>
+                  <option value="on">On</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Durata</th>
+              <th class="central-col">              
+                <input type="number" min="0" max="3600" class="form-input" id="durationOut4" name="durationOut4">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Tipo</th>
+              <th class="central-col">              
+                <select name="typeOut4" id="typeOut4">
+                  <option value="continuous">Continuo</option>
+                  <option value="followState">Segue Stato</option>
+                </select>
+              </th>  
+            </tr>
+          </table>
+        </div>  
+        <div>
+          <table class="ip">
+            <tr>
+              <th class="first-col">
+                <label>Uscita5</label>
+              </th>
+              <th class="central-col">
+                <button>ON</button>
+              </th>
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Descrizione</th>
+              <th class="central-col">              
+                <input type="text" class="form-input" id="descOut5" name="descOut5">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Condizione</th>
+              <th class="central-col">              
+                <select name="conditionOut5" id="conditionOut5">
+                  <option value="alarm">Allarme</option>
+                  <option value="broken">Guasto</option>
+                  <option value="exclusion">Esclusione</option>
+                  <option value="bypass">ByPass</option>
+                  <option value="diagnostic">Autodiagnosi</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Stato a Riposo</th>
+              <th class="central-col">              
+                <select name="normalStateOut5" id="normalStateOut5">
+                  <option value="off">Off</option>
+                  <option value="on">On</option>
+                </select>
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Durata</th>
+              <th class="central-col">              
+                <input type="number" min="0" max="3600" class="form-input" id="durationOut5" name="durationOut5">
+              </th>  
+            </tr>
+            <tr>
+              <th class="first-col"></th>
+              <th class="central-col">Tipo</th>
+              <th class="central-col">              
+                <select name="typeOut5" id="typeOut5">
+                  <option value="continuous">Continuo</option>
+                  <option value="followState">Segue Stato</option>
+                </select>
+              </th>  
+            </tr>
+          </table>
+        </div>  
+        <br><br>        
+        <button class="submit" type="submit" formmethod="post">Invia</button>
+      </form>
     </div>
     <!-- Tab content: credentials -->
     <div id="credentials" class="tabcontent">
       <h3>Credenziali</h3>
-        <form action="/successChange.html" method="get">
-          <table class="ip">
-            <tr>
-              <th class="first-col">
-                <label for="dhcp">Utente</label>
-              </th>
-              <th>              
-                <input type="text" class="form-input" id="user" name="user">
-              </th>
-            </tr>  
-            <tr>
-              <th class="first-col">
-                <label>Vecchia Password:</label>&emsp;
-              </th>
-              <th>
-                <input type="text" class="form-input" id="oldPwd" name="oldPwd">
-              </th>
-            </tr>
-            <tr>
-              <th class="first-col">
-                <label>Nuova Password:</label>&emsp;
-              </th>
-              <th>
-                <input type="text" class="form-input" id="newPwd" name="newPwd">
-              </th>
-            </tr>  
-            <tr>
-              <th class="first-col">
-                <label>Conferma Nuova Password:</label>&emsp;
-              </th>
-              <th>
-                <input type="text" class="form-input" id="newPwd2" name="newPwd2">
-              </th>
-            </tr>
-          </table><br><br>        
-          <button class="submit" type="submit" formmethod="post">Invia</button>
+      <form action="/successChange.html" method="get">
+        <input type="text" class="form-input" id="page" name="page" value="credentials" style="display: none">     <!-- pass to backend -->
+        <table class="ip">
+          <tr>
+            <th class="first-col">
+              <label for="dhcp">Utente</label>
+            </th>
+            <th>              
+              <input type="text" class="form-input" id="user" name="user">
+            </th>
+          </tr>  
+          <tr>
+            <th class="first-col">
+              <label>Vecchia Password:</label>&emsp;
+            </th>
+            <th>
+              <input type="text" class="form-input" id="oldPwd" name="oldPwd">
+            </th>
+          </tr>
+          <tr>
+            <th class="first-col">
+              <label>Nuova Password:</label>&emsp;
+            </th>
+            <th>
+              <input type="text" class="form-input" id="newPwd" name="newPwd">
+            </th>
+          </tr>  
+          <tr>
+            <th class="first-col">
+              <label>Conferma Nuova Password:</label>&emsp;
+            </th>
+            <th>
+              <input type="text" class="form-input" id="newPwd2" name="newPwd2">
+            </th>
+          </tr>
+        </table><br><br>        
+        <button class="submit" type="submit" formmethod="post">Invia</button>
+      </form>
     </div>
   </body>
 </html>

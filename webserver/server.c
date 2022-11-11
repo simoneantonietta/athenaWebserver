@@ -134,6 +134,7 @@ void handle_http_request(int fd/*, struct cache *cache*/)
     isiFormValues_t isiFormVal;
     svFormValues_t svFormVal;
     credentialFormValues_t credentialFormVal;
+    outFormValues_t outFormVal;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -238,10 +239,29 @@ void handle_http_request(int fd/*, struct cache *cache*/)
 
             if(strstr(request_cpy,"parametri_di_sistema.html") != NULL)
             {
-                int result= parseSystemForm(request_cpy, &ipFormVal);
-                Log("/tmp/webserver.log","POST parsified\n");               
-                changeIP(&ipFormVal);
-                Log("/tmp/webserver.log","NETWORK changed\n");               
+                int result;
+                if(strstr(request_cpy,"page=network"))
+                {
+                    result= parseSystemForm(request_cpy, &ipFormVal);
+                    Log("/tmp/webserver.log","NETWORK POST parsified\n");               
+                    changeIP(&ipFormVal);
+                    Log("/tmp/webserver.log","NETWORK changed\n");                                   
+                }
+                else if(strstr(request_cpy,"page=output"))
+                {
+                    result= parseOutputForm(request_cpy, &outFormVal);
+                    Log("/tmp/webserver.log","OUTPUT POST parsified\n");               
+                    changeOut(&outFormVal);
+                    Log("/tmp/webserver.log","OUTPUT changed\n");                                   
+                }
+                else if(strstr(request_cpy,"page=credentials"))
+                {
+                    result= parseCredentialForm(request_cpy, &credentialFormVal);
+                    Log("/tmp/webserver.log","CREDENTIAL POST parsified\n");               
+                    changePwd = changeCredential(&credentialFormVal);
+                    Log("/tmp/webserver.log","CREDENTIALS changed\n");                               
+                }
+
                 if(result)         
                 {
                     sprintf(logString, "Form Values detected:%d\n",result);        
@@ -271,19 +291,7 @@ void handle_http_request(int fd/*, struct cache *cache*/)
                     sprintf(logString, "Form Values detected:%d\n",result);        
                     Log("/tmp/webserver.log", logString);
                 }
-            }
-            else if(strstr(request_cpy,"credenziali.html") != NULL)
-            {
-                int result= parseCredentialForm(request_cpy, &credentialFormVal);
-                Log("/tmp/webserver.log","POST parsified\n");               
-                changePwd = changeCredential(&credentialFormVal);
-                Log("/tmp/webserver.log","credentials changed\n");               
-                if(result)         
-                {
-                    sprintf(logString, "Form Values detected:%d\n",result);        
-                    Log("/tmp/webserver.log", logString);
-                }
-            }
+            }           
 
             // Fetch the requested file
             snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, requestResource);
