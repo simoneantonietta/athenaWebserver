@@ -81,7 +81,7 @@ typedef struct{
 }centralParam_t;
 
 typedef struct{
-	unsigned char function;			/* 0=allarme, 1=guasto, 2=esclusione, 3=bypass */
+	unsigned char function;			
 	char description[64];
 	unsigned char allDayActive;
 	unsigned int delay;
@@ -430,14 +430,14 @@ int parseCentralForm(char* form, isiFormValues_t * result)
 		{
 			sprintf(tmpValue,"in%dFunction=",i+1);
 			searchValIntoForm(form, tmpValue, formValStr, STRING_TYPE);
-			if(strcmp(formValStr,"alarm"))
+			if(strcmp(formValStr,"alarm")==0)
 				result->inputs[i].function = COND_ALARM;
-			else if(strcmp(formValStr,"broken"))
-				result->inputs[i].function = COND_SABOT;
-			else if(strcmp(formValStr,"exclusion"))
+			else if(strcmp(formValStr,"broken")==0)
+				result->inputs[i].function = COND_FAIL;
+			else if(strcmp(formValStr,"exclusion")==0)
 				result->inputs[i].function = COND_EXCL;
-			else if(strcmp(formValStr,"bypass"))
-				result->inputs[i].function = COND_BYPASS;
+			else if(strcmp(formValStr,"bypass")==0)
+				result->inputs[i].function = COND_BYPASS;			
 			sprintf(tmpValue,"in%dDesc=",i+1);
 			searchValIntoForm(form, tmpValue, result->inputs[i].description, STRING_TYPE);
 			sprintf(tmpValue,"in%denable24h=",i+1);
@@ -761,8 +761,8 @@ void changeIsiConf(isiFormValues_t * isiParam)
 				;		
 			strncpy(newString,tmpString,i+strlen("\"central\":{"));			// copy first part
 			newString[i+strlen("\"central\":{")] = '\0';					// add terminator					
-			sprintf(newString,"%s\"type\":\"%s\",",				newString,isiParam->centralType);
-			sprintf(newString,"%s\"model\":\"%s\",",				newString,isiParam->centralModel);
+			sprintf(newString,"%s\"type\":\"%s\",",						newString,isiParam->centralType);
+			sprintf(newString,"%s\"model\":\"%s\",",					newString,isiParam->centralModel);
 			sprintf(newString,"%s\"connection\":\"%s\",",				newString,isiParam->centralParam.connection);
 			sprintf(newString,"%s\"serialPort\":%d,",					newString,isiParam->centralParam.serialPort);
 			sprintf(newString,"%s\"plant\":%d,",						newString,isiParam->centralParam.plant);
@@ -779,18 +779,17 @@ void changeIsiConf(isiFormValues_t * isiParam)
 			sprintf(newString,"%s\"inputBalance\":%d},\"in\":[",		newString,isiParam->centralParam.inputBalance);	
 			for(j=0;j<8;j++)
 			{
-				sprintf(newString,"%s{\"idx\":%d,",					newString,j);	
-				sprintf(newString,"%s\"tipo\":%d,",						newString,isiParam->centralParam.inputBalance);
+				sprintf(newString,"%s{\"idx\":%d,",						newString,j);	
+				sprintf(newString,"%s\"tipo\":%d,",						newString,isiParam->inputs[j].function);
 				sprintf(newString,"%s\"h24\":%d,",						newString,isiParam->inputs[j].allDayActive);	
 				sprintf(newString,"%s\"ritardo\":%d,",					newString,isiParam->inputs[j].delay);
 				sprintf(newString,"%s\"tipo_rit\":%d,",					newString,isiParam->inputs[j].delayType);
-				sprintf(newString,"%s\"ripristino\":%d,",				newString,isiParam->inputs[j].function);	
-				sprintf(newString,"%s\"descr\":\"%s\",",				newString,isiParam->inputs[j].description);												
-				sprintf(newString,"%s\"restore\":%d,",					newString,isiParam->inputs[j].restore);
+				sprintf(newString,"%s\"ripristino\":%d,",				newString,isiParam->inputs[j].restore);	
+				sprintf(newString,"%s\"descr\":\"%s\",",				newString,isiParam->inputs[j].description);																
 				if(j==7)
 					sprintf(newString,"%s\"cond\":%d}",					newString,isiParam->inputs[j].restoreCondition);
 				else
-					sprintf(newString,"%s\"cond\":%d},",					newString,isiParam->inputs[j].restoreCondition);
+					sprintf(newString,"%s\"cond\":%d},",				newString,isiParam->inputs[j].restoreCondition);
 			}
 
 			
@@ -1014,11 +1013,15 @@ void fillPage(struct file_data *page, char *pageName)
 	FILE * fd;
 	char tmpString[4096], *pageFilled, *pageRow, addressString[22], paramFound=0, valStr[64], *tmpPointer;
 	unsigned int networkParams[13];
-	unsigned int idx=0, newPageIndex=0, i, old_pageRowIdx;
-	unsigned char changeRes;
+	unsigned int idx=0, newPageIndex=0, i, j, old_pageRowIdx;
+	unsigned char changeRes, flagFound[8][6];
 	int pageRowIdx;
 	char networkParamList[13][7+1];	
 	isiFormValues_t central;
+
+	for(i=0;i<8;i++)
+		for(j=0;j<6;j++)
+			flagFound[i][j] = 0;
 
 	pageFilled = malloc(page->size + N_BYTES_PARAMS);
 	//printf("Page size:%d\n",page->size);
@@ -1052,17 +1055,21 @@ void fillPage(struct file_data *page, char *pageName)
 				central.centralParam.inputBalance = extractValFromJson(tmpString, "inputBalance", NULL, INT_TYPE);				 
 				for(i=0;i<8;i++)
 				{
-					sprintf(valStr,"\"idx\":%d",i);
-					tmpPointer = strstr(tmpString,valStr);
-					if(tmpPointer!=NULL)
+					tmpPointer = strstr(tmpString,"\"in\":[");
+					if(tmpPointer != NULL)							// search input field
 					{
-						central.inputs[i].function = extractValFromJson(tmpString, "tipo", NULL, INT_TYPE);
-						extractValFromJson(tmpString, "descr", central.inputs[i].description, STRING_TYPE);
-						central.inputs[i].allDayActive = extractValFromJson(tmpString, "h24", NULL, INT_TYPE);
-						central.inputs[i].delay = extractValFromJson(tmpString, "ritardo", NULL, INT_TYPE);
-						central.inputs[i].delayType = extractValFromJson(tmpString, "tipo_rit", NULL, INT_TYPE);
-						central.inputs[i].restore = extractValFromJson(tmpString, "ripristino", NULL, INT_TYPE);
-						central.inputs[i].restoreCondition = extractValFromJson(tmpString, "cond", NULL, INT_TYPE);									
+						sprintf(valStr,"\"idx\":%d",i);
+						tmpPointer = strstr(tmpString,valStr);
+						if(tmpPointer!=NULL)
+						{
+							central.inputs[i].function = extractValFromJson(tmpPointer, "tipo", NULL, INT_TYPE);
+							extractValFromJson(tmpPointer, "descr", central.inputs[i].description, STRING_TYPE);
+							central.inputs[i].allDayActive = extractValFromJson(tmpPointer, "h24", NULL, INT_TYPE);
+							central.inputs[i].delay = extractValFromJson(tmpPointer, "ritardo", NULL, INT_TYPE);
+							central.inputs[i].delayType = extractValFromJson(tmpPointer, "tipo_rit", NULL, INT_TYPE);
+							central.inputs[i].restore = extractValFromJson(tmpPointer, "ripristino", NULL, INT_TYPE);
+							central.inputs[i].restoreCondition = extractValFromJson(tmpPointer, "cond", NULL, INT_TYPE);		
+						}						
 					}
 				}		
 			}						
@@ -1152,7 +1159,112 @@ void fillPage(struct file_data *page, char *pageName)
 				changeRes |= (~changeValInHtmlPage(pageRow,NULL,tmpString,pageFilled,&newPageIndex,SELECT))&0x01;
 				if(strcmp(central.centralType,"local")==0)
 				{
-/* TO BE DONE */
+					for(i=0;i<8;i++)
+					{
+						sprintf(tmpString,"in%dFunction",i+1);
+						if(strstr(pageRow,tmpString) != NULL)
+							flagFound[i][0] = 1;
+						else if(flagFound[i][0])
+						{			
+							switch(central.inputs[i].function)
+							{
+								case COND_ALARM:
+									sprintf(tmpString,"alarm");
+									break;
+								case COND_FAIL:
+									sprintf(tmpString,"broken");
+									break;
+								case COND_EXCL:
+									sprintf(tmpString,"exclusion");
+									break;
+								case COND_BYPASS:
+									sprintf(tmpString,"bypass");
+									break;								
+							}			
+							if(strstr(pageRow,tmpString) != NULL){
+								flagFound[i][0] = 0;
+								changeRes |= (~changeValInHtmlPage(pageRow,NULL,tmpString,pageFilled,&newPageIndex,SELECT))&0x01;
+							}									
+						}
+						sprintf(tmpString,"in%dDesc",i+1);
+						changeRes |= (~changeValInHtmlPage(pageRow,tmpString,central.inputs[i].description,pageFilled,&newPageIndex,INPUT))&0x01;													
+						sprintf(tmpString,"in%denable24h",i+1);
+						if(strstr(pageRow,tmpString) != NULL)
+							flagFound[i][1] = 1;
+						else if(flagFound[i][1])
+						{							
+							if(central.inputs[i].allDayActive == ON){
+								if(strstr(pageRow,"on") != NULL){
+									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"on",pageFilled,&newPageIndex,SELECT))&0x01;
+									flagFound[i][1] = 0;
+								}
+							}
+							else{
+								if(strstr(pageRow,"off") != NULL){
+									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"off",pageFilled,&newPageIndex,SELECT))&0x01;							
+									flagFound[i][1] = 0;
+								}
+							}
+						}
+						sprintf(tmpString,"in%dDelay",i+1);
+						sprintf(tmpPointer,"%d",central.inputs[i].delay);
+						changeRes |= (~changeValInHtmlPage(pageRow,tmpString,tmpPointer,pageFilled,&newPageIndex,INPUT))&0x01;
+						sprintf(tmpString,"in%dDelayType",i+1);
+						if(strstr(pageRow,tmpString) != NULL)
+							flagFound[i][2] = 1;
+						else if(flagFound[i][2])
+						{							
+							if(central.inputs[i].delayType == PULSE){
+								if(strstr(pageRow,"pulse") != NULL){
+									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"pulse",pageFilled,&newPageIndex,SELECT))&0x01;
+									flagFound[i][2] = 0;
+								}
+							}
+							else{
+								if(strstr(pageRow,"continuous") != NULL){
+									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"continuous",pageFilled,&newPageIndex,SELECT))&0x01;
+									flagFound[i][2] = 0;
+								}
+							}
+						}
+						sprintf(tmpString,"in%dRestore",i+1);
+						if(strstr(pageRow,tmpString) != NULL)
+							flagFound[i][3] = 1;
+						else if(flagFound[i][3])
+						{
+							if(central.inputs[i].restore == ON){
+								if(strstr(pageRow,"on") != NULL){
+									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"on",pageFilled,&newPageIndex,SELECT))&0x01;
+									flagFound[i][3] = 0;
+								}
+							}
+							else{
+								if(strstr(pageRow,"off") != NULL){								
+									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"off",pageFilled,&newPageIndex,SELECT))&0x01;
+									flagFound[i][3] = 0;
+								}
+							}
+						}
+						sprintf(tmpString,"in%dRestoreCondition",i+1);
+						if(strstr(pageRow,tmpString) != NULL)
+							flagFound[i][4] = 1;
+						else if(flagFound[i][4])
+						{
+							if(central.inputs[i].restoreCondition == BYPASS){
+								if(strstr(pageRow,"bypass") != NULL){								
+									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"bypass",pageFilled,&newPageIndex,SELECT))&0x01;
+									flagFound[i][4] = 0;
+								}
+							}
+							else{
+								if(strstr(pageRow,"input") != NULL){								
+									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"input",pageFilled,&newPageIndex,SELECT))&0x01;
+									flagFound[i][4] = 0;
+								}
+							}
+						}
+					}
+
 				}	
 				if(changeRes == 0)															// no value found
 					newPageIndex += pageRowIdx - old_pageRowIdx + 1;									
@@ -1163,8 +1275,8 @@ void fillPage(struct file_data *page, char *pageName)
 				old_pageRowIdx = ++pageRowIdx;
 			}
 		}
-		*(pageFilled+newPageIndex) = '\0';
-		free(page->data);
+		printf("Ho finito di fare il fillpage\n");
+		*(pageFilled+newPageIndex) = '\0';		
 		page->data = malloc(strlen(pageFilled));
 		memcpy((char *)(page->data),pageFilled,strlen(pageFilled));
 		page->size = strlen(pageFilled);
@@ -1291,7 +1403,8 @@ void fillPage(struct file_data *page, char *pageName)
 			}
 		}
 		*(pageFilled+newPageIndex) = '\0';
-		free(page->data);
+		/*if(page->data != NULL)
+			free(page->data);*/
 		page->data = malloc(strlen(pageFilled));
 		memcpy((char *)(page->data),pageFilled,strlen(pageFilled));
 		page->size = strlen(pageFilled);	
