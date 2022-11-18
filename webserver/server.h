@@ -1018,6 +1018,7 @@ void fillPage(struct file_data *page, char *pageName)
 	int pageRowIdx;
 	char networkParamList[13][7+1];	
 	isiFormValues_t central;
+	outputValues_t output[5];
 
 	for(i=0;i<8;i++)
 		for(j=0;j<6;j++)
@@ -1059,7 +1060,7 @@ void fillPage(struct file_data *page, char *pageName)
 					if(tmpPointer != NULL)							// search input field
 					{
 						sprintf(valStr,"\"idx\":%d",i);
-						tmpPointer = strstr(tmpString,valStr);
+						tmpPointer = strstr(tmpPointer,valStr);
 						if(tmpPointer!=NULL)
 						{
 							central.inputs[i].function = extractValFromJson(tmpPointer, "tipo", NULL, INT_TYPE);
@@ -1071,9 +1072,10 @@ void fillPage(struct file_data *page, char *pageName)
 							central.inputs[i].restoreCondition = extractValFromJson(tmpPointer, "cond", NULL, INT_TYPE);		
 						}						
 					}
-				}		
+				}						
 			}						
-		}		
+		}
+		fclose(fd);		
 		pageRowIdx=0;
 		old_pageRowIdx=0;		
 		while(pageRowIdx<page->size)
@@ -1344,6 +1346,32 @@ void fillPage(struct file_data *page, char *pageName)
 																					  networkParams[9], networkParams[10], networkParams[11], networkParams[12]);
 		Log("/tmp/webserver.log",tmpString);
 
+		fd = fopen("webserver.sav","r");		
+		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
+		{
+			if(strstr(tmpString,"\"central\":{")!=NULL)
+			{
+				for(i=0;i<5;i++)
+				{
+					tmpPointer = strstr(tmpString,"\"out\":[");
+					if(tmpPointer != NULL)							// search output field
+					{						
+						sprintf(valStr,"\"idx\":%d",i);
+						tmpPointer = strstr(tmpPointer,valStr);
+						if(tmpPointer!=NULL)
+						{				
+							extractValFromJson(tmpPointer, "descr", output[i].description, STRING_TYPE);
+							output[i].condition = extractValFromJson(tmpPointer, "cond", NULL, INT_TYPE);
+							output[i].normalState = extractValFromJson(tmpPointer, "na_nc", NULL, INT_TYPE);
+							output[i].duration = extractValFromJson(tmpPointer, "durata", NULL, INT_TYPE);
+							output[i].type = extractValFromJson(tmpPointer, "tipo", NULL, INT_TYPE);
+						}						
+					}
+				}
+			}
+		}
+		fclose(fd);
+
 		pageRowIdx=0;
 		old_pageRowIdx=0;
 		while(pageRowIdx<page->size)
@@ -1393,8 +1421,82 @@ void fillPage(struct file_data *page, char *pageName)
 					}
 				}
 				else
-				{					
-						newPageIndex += pageRowIdx - old_pageRowIdx + 1;					
+				{									
+						changeRes=0;
+						for(i=0;i<5;i++)
+						{
+							sprintf(tmpString,"descOut%d",i+1);
+							changeRes |= (~changeValInHtmlPage(pageRow,tmpString,output[i].description,pageFilled,&newPageIndex,INPUT))&0x01;														
+							sprintf(tmpString,"conditionOut%d",i+1);
+							if(strstr(pageRow,tmpString) != NULL)
+								flagFound[i][0] = 1;
+							else if(flagFound[i][0])
+							{			
+								switch(output[i].condition)
+								{
+									case COND_ALARM:
+										sprintf(tmpString,"alarm");
+										break;
+									case COND_FAIL:
+										sprintf(tmpString,"broken");
+										break;
+									case COND_EXCL:
+										sprintf(tmpString,"exclusion");
+										break;
+									case COND_BYPASS:
+										sprintf(tmpString,"bypass");
+										break;		
+									case COND_REMOTE:
+										sprintf(tmpString,"diagnostic");
+										break;									
+								}			
+								if(strstr(pageRow,tmpString) != NULL){
+									flagFound[i][0] = 0;
+									changeRes |= (~changeValInHtmlPage(pageRow,NULL,tmpString,pageFilled,&newPageIndex,SELECT))&0x01;
+								}									
+							}
+							sprintf(tmpString,"normalStateOut%d",i+1);
+							if(strstr(pageRow,tmpString) != NULL)
+								flagFound[i][1] = 1;
+							else if(flagFound[i][1])
+							{							
+								if(output[i].normalState == ON){
+									if(strstr(pageRow,"on") != NULL){
+										changeRes |= (~changeValInHtmlPage(pageRow,NULL,"on",pageFilled,&newPageIndex,SELECT))&0x01;
+										flagFound[i][1] = 0;
+									}
+								}
+								else{
+									if(strstr(pageRow,"off") != NULL){
+										changeRes |= (~changeValInHtmlPage(pageRow,NULL,"off",pageFilled,&newPageIndex,SELECT))&0x01;							
+										flagFound[i][1] = 0;
+									}
+								}
+							}
+							sprintf(tmpPointer,"%d",output[i].duration);
+							sprintf(tmpString,"durationOut%d",i+1);
+							changeRes |= (~changeValInHtmlPage(pageRow,tmpString,tmpPointer,pageFilled,&newPageIndex,INPUT))&0x01;
+							sprintf(tmpString,"typeOut%d",i+1);
+							if(strstr(pageRow,tmpString) != NULL)
+								flagFound[i][2] = 1;
+							else if(flagFound[i][2])
+							{							
+								if(output[i].type == TYPE_CONTINUOUS){
+									if(strstr(pageRow,"continuous") != NULL){
+										changeRes |= (~changeValInHtmlPage(pageRow,NULL,"on",pageFilled,&newPageIndex,SELECT))&0x01;
+										flagFound[i][1] = 0;
+									}
+								}
+								else{
+									if(strstr(pageRow,"followState") != NULL){
+										changeRes |= (~changeValInHtmlPage(pageRow,NULL,"off",pageFilled,&newPageIndex,SELECT))&0x01;							
+										flagFound[i][1] = 0;
+									}
+								}
+							}
+						}
+						if(changeRes==0)	
+							newPageIndex += pageRowIdx - old_pageRowIdx + 1;											
 				}
 				if(pageRow != NULL)	
 					free(pageRow);
