@@ -1196,7 +1196,7 @@ void fillPage(struct file_data *page, char *pageName)
 						else if(flagFound[i][1])
 						{							
 							if(central.inputs[i].allDayActive == ON){
-								if(strstr(pageRow,"on") != NULL){
+								if(strstr(pageRow,"\"on\"") != NULL){
 									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"on",pageFilled,&newPageIndex,SELECT))&0x01;
 									flagFound[i][1] = 0;
 								}
@@ -1235,7 +1235,7 @@ void fillPage(struct file_data *page, char *pageName)
 						else if(flagFound[i][3])
 						{
 							if(central.inputs[i].restore == ON){
-								if(strstr(pageRow,"on") != NULL){
+								if(strstr(pageRow,"\"on\"") != NULL){
 									changeRes |= (~changeValInHtmlPage(pageRow,NULL,"on",pageFilled,&newPageIndex,SELECT))&0x01;
 									flagFound[i][3] = 0;
 								}
@@ -1461,7 +1461,7 @@ void fillPage(struct file_data *page, char *pageName)
 							else if(flagFound[i][1])
 							{							
 								if(output[i].normalState == ON){
-									if(strstr(pageRow,"on") != NULL){
+									if(strstr(pageRow,"\"on\"") != NULL){
 										changeRes |= (~changeValInHtmlPage(pageRow,NULL,"on",pageFilled,&newPageIndex,SELECT))&0x01;
 										flagFound[i][1] = 0;
 									}
@@ -1483,14 +1483,14 @@ void fillPage(struct file_data *page, char *pageName)
 							{							
 								if(output[i].type == TYPE_CONTINUOUS){
 									if(strstr(pageRow,"continuous") != NULL){
-										changeRes |= (~changeValInHtmlPage(pageRow,NULL,"on",pageFilled,&newPageIndex,SELECT))&0x01;
-										flagFound[i][1] = 0;
+										changeRes |= (~changeValInHtmlPage(pageRow,NULL,"continuous",pageFilled,&newPageIndex,SELECT))&0x01;
+										flagFound[i][2] = 0;
 									}
 								}
 								else{
 									if(strstr(pageRow,"followState") != NULL){
-										changeRes |= (~changeValInHtmlPage(pageRow,NULL,"off",pageFilled,&newPageIndex,SELECT))&0x01;							
-										flagFound[i][1] = 0;
+										changeRes |= (~changeValInHtmlPage(pageRow,NULL,"followState",pageFilled,&newPageIndex,SELECT))&0x01;							
+										flagFound[i][2] = 0;
 									}
 								}
 							}
