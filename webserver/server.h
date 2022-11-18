@@ -103,10 +103,21 @@ typedef struct{
 	char sms;
 	char voice;
 	char alertType;
+	char cmd;
 }phone_t;
 
 typedef struct{
-	char urlRegister[64];
+	char plantLabel[64];
+	char hiCloudEn;
+	unsigned int hiCloudPlantId;	
+	char hiCloudRegister[64];
+	char cidEn;
+	char cidRegister1[64];
+	char cidRegister2[64];
+	char pinSim[64];
+	char apnSim[64];
+	char userSim[64];
+	char pwdSim[64];
 	phone_t phone[8];
 }svFormValues_t;
 
@@ -486,8 +497,29 @@ int parseSupervisorForm(char* form, svFormValues_t * result)
 		nParam++;
 
 	//printf("\nThere are %d Parameters\n",nParam);
+
+	searchValIntoForm(form, "plantLabel=", result->plantLabel, STRING_TYPE);
+	sprintf(tmpString,"enableHiCloud=");
+	searchValIntoForm(form, tmpString, tmpValue, STRING_TYPE);
+	if(strncmp(tmpValue,"on",strlen("on"))==0)
+		result->hiCloudEn = ON;
+	else
+		result->hiCloudEn = OFF;
+	result->hiCloudPlantId = searchValIntoForm(form, "plantId=", NULL, INT_TYPE);
+	searchValIntoForm(form, "urlRegister=", result->hiCloudRegister, STRING_TYPE);
+	sprintf(tmpString,"enableCid=");
+	searchValIntoForm(form, tmpString, tmpValue, STRING_TYPE);
+	if(strncmp(tmpValue,"on",strlen("on"))==0)
+		result->cidEn = ON;
+	else
+		result->cidEn = OFF;
+	searchValIntoForm(form, "urlCid1=", result->cidRegister1, STRING_TYPE);
+	searchValIntoForm(form, "urlCid2=", result->cidRegister2, STRING_TYPE);
+	searchValIntoForm(form, "pin=", result->pinSim, STRING_TYPE);
+	searchValIntoForm(form, "apn=", result->apnSim, STRING_TYPE);
+	searchValIntoForm(form, "user=", result->userSim, STRING_TYPE);
+	searchValIntoForm(form, "pwd=", result->pwdSim, STRING_TYPE);
 	
-	searchValIntoForm(form, "urlRegister=", result->urlRegister, STRING_TYPE);
 	for(i=0;i<8;i++)
 	{
 		sprintf(tmpString,"descCell%d=",i+1);
@@ -828,7 +860,17 @@ void changeSV(svFormValues_t * svParam)
 				;		
 			strncpy(newString,tmpString,i+strlen("\"sv\":{"));			// copy first part
 			newString[i+strlen("\"sv\":{")] = '\0';						// add terminator
-			sprintf(newString,"%s\"url\":\"%s\",\"phone\":[",					newString,svParam->urlRegister);
+			sprintf(newString,"%s\"descr\":%s,",								newString,svParam->plantLabel);
+			sprintf(newString,"%s\"hiCloud\":%d,",								newString,svParam->hiCloudEn);
+			sprintf(newString,"%s\"hiCloudId\":%d,",							newString,svParam->hiCloudPlantId);
+			sprintf(newString,"%s\"url\":\"%s\",",								newString,svParam->hiCloudRegister);			
+			sprintf(newString,"%s\"cid\":%d,",									newString,svParam->cidEn);
+			sprintf(newString,"%s\"cidReg1\":%s,",								newString,svParam->cidRegister1);
+			sprintf(newString,"%s\"cidReg2\":%s,",								newString,svParam->cidRegister2);
+			sprintf(newString,"%s\"pin\":%s,",									newString,svParam->pinSim);
+			sprintf(newString,"%s\"apn\":%s,",									newString,svParam->apnSim);
+			sprintf(newString,"%s\"user\":%s,",									newString,svParam->userSim);
+			sprintf(newString,"%s\"pwd\":\"%s\",\"phone\":[",					newString,svParam->pwdSim);
 			for(j=0;j<8;j++)
 			{
 				sprintf(newString,"%s{\"idx\":%d\",",						newString,j);	
@@ -836,6 +878,7 @@ void changeSV(svFormValues_t * svParam)
 				sprintf(newString,"%s\"voce\":%d,",							newString,svParam->phone[j].voice);	
 				sprintf(newString,"%s\"tipo\":%d,",							newString,svParam->phone[j].alertType);
 				sprintf(newString,"%s\"num\":\"%s\",",						newString,svParam->phone[j].number);					
+				sprintf(newString,"%s\"cmd\":\"%d\",",						newString,svParam->phone[j].cmd);
 				if(j==7)
 					sprintf(newString,"%s\"descr\":\"%s\"}",					newString,svParam->phone[j].description);									
 				else
@@ -1019,6 +1062,7 @@ void fillPage(struct file_data *page, char *pageName)
 	char networkParamList[13][7+1];	
 	isiFormValues_t central;
 	outputValues_t output[5];
+	svFormValues_t sv;
 
 	for(i=0;i<8;i++)
 		for(j=0;j<6;j++)
@@ -1513,6 +1557,69 @@ void fillPage(struct file_data *page, char *pageName)
 	}
 	else if(strncmp(pageName,"/parametri_di_supervisione.html",strlen("parametri_di_supervisione"))==0)
 	{
+		fd = fopen("webserver.sav","r");		
+		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
+		{
+			tmpPointer = strstr(tmpString,"\"sv\":{");
+			if(tmpPointer!=NULL)
+			{
+				extractValFromJson(tmpPointer, "descr", sv.plantLabel, STRING_TYPE);				
+				sv.hiCloudEn = extractValFromJson(tmpPointer, "hiCloud", NULL, INT_TYPE);
+				sv.hiCloudPlantId = extractValFromJson(tmpPointer, "hiCloudId", NULL, INT_TYPE);
+				extractValFromJson(tmpPointer, "url", sv.hiCloudRegister, STRING_TYPE);
+				sv.cidEn = extractValFromJson(tmpPointer, "cid", NULL, INT_TYPE);
+				extractValFromJson(tmpPointer, "cidReg1", sv.cidRegister1, STRING_TYPE);
+				extractValFromJson(tmpPointer, "cidReg2", sv.cidRegister2, STRING_TYPE);
+				extractValFromJson(tmpPointer, "pin", sv.pinSim, STRING_TYPE);
+				extractValFromJson(tmpPointer, "apn", sv.apnSim, STRING_TYPE);
+				extractValFromJson(tmpPointer, "user", sv.userSim, STRING_TYPE);
+				extractValFromJson(tmpPointer, "pwd", sv.pwdSim, STRING_TYPE);				
+				for(i=0;i<8;i++)
+				{					
+					tmpPointer = strstr(tmpString,"\"phone\":[");
+					if(tmpPointer != NULL)							// search output field
+					{						
+						sprintf(valStr,"\"idx\":%d",i);
+						tmpPointer = strstr(tmpPointer,valStr);
+						if(tmpPointer!=NULL)
+						{										
+							extractValFromJson(tmpPointer, "descr", sv.phone[i].description, STRING_TYPE);
+							extractValFromJson(tmpPointer, "num", sv.phone[i].number, STRING_TYPE);
+							sv.phone[i].sms = extractValFromJson(tmpPointer, "sms", NULL, INT_TYPE);
+							sv.phone[i].voice = extractValFromJson(tmpPointer, "voce", NULL, INT_TYPE);
+							sv.phone[i].alertType = extractValFromJson(tmpPointer, "tipo", NULL, INT_TYPE);
+							sv.phone[i].cmd = extractValFromJson(tmpPointer, "cmd", NULL, INT_TYPE);						
+						}
+					}
+				}
+			}
+		}
+		fclose(fd);
+/*
+typedef struct{
+	char description[64];
+	char number[32];
+	char sms;
+	char voice;
+	char alertType;
+	char cmd;
+}phone_t;
+
+typedef struct{
+	char plantLabel[64];
+	char hiCloudEn;
+	unsigned int hiCloudPlantId;	
+	char hiCloudRegister[64];
+	char cidEn;
+	char cidRegister1[64];
+	char cidRegister2[64];
+	char pinSim[64];
+	char apnSim[64];
+	char userSim[64];
+	char pwdSim[64];
+	phone_t phone[8];
+}svFormValues_t;
+*/
 
 	}
 
