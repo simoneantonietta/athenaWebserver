@@ -36,6 +36,7 @@
 
 #define SELECT				0
 #define INPUT				1
+#define CHECKBOX			2
 
 #define ALARM 				0
 #define DIAGNOSTIC 			1
@@ -173,9 +174,10 @@ unsigned char changeValInHtmlPage(char *pageRow, char *param, char *value, char 
 		case SELECT:
 			sprintf(paramStr," value=\"%s\">",value);			
 			break;
+		case CHECKBOX:
 		case INPUT:
 			sprintf(paramStr,"id=\"%s\"",param);
-			break;
+			break;		
 	}	
 	tmpString = strstr(pageRow,paramStr);
 
@@ -194,6 +196,10 @@ unsigned char changeValInHtmlPage(char *pageRow, char *param, char *value, char 
 					case INPUT:
 						sprintf(tmpValue," value=\"%s\"",value);
 						strcat(valString,tmpValue);
+						break;
+					case CHECKBOX:
+						if(strcmp(value,"on")==0)
+							strcat(valString," checked");						
 						break;
 				}	
 				for(i=strlen(valString);idx<strlen(pageRow) && (pageRow[idx]!='\n');i++,idx++){
@@ -501,10 +507,12 @@ int parseSupervisorForm(char* form, svFormValues_t * result)
 	searchValIntoForm(form, "plantLabel=", result->plantLabel, STRING_TYPE);
 	sprintf(tmpString,"enableHiCloud=");
 	searchValIntoForm(form, tmpString, tmpValue, STRING_TYPE);
+	printf("Il valore di hiCloudEn sarà:%s\n",tmpValue);
 	if(strncmp(tmpValue,"on",strlen("on"))==0)
 		result->hiCloudEn = ON;
 	else
 		result->hiCloudEn = OFF;
+	printf("hiCloudEn:%d\n",result->hiCloudEn);
 	result->hiCloudPlantId = searchValIntoForm(form, "plantId=", NULL, INT_TYPE);
 	searchValIntoForm(form, "urlRegister=", result->hiCloudRegister, STRING_TYPE);
 	sprintf(tmpString,"enableCid=");
@@ -545,7 +553,13 @@ int parseSupervisorForm(char* form, svFormValues_t * result)
 		else if(strcmp(tmpValue,"diagnostic")==0)
 			result->phone[i].alertType = DIAGNOSTIC;
 		else if(strcmp(tmpValue,"alarm_diagnostic")==0)
-			result->phone[i].alertType = ALARM_DIAGNOSTIC;		
+			result->phone[i].alertType = ALARM_DIAGNOSTIC;	
+		sprintf(tmpString,"cmdCell%d=",i+1);
+		searchValIntoForm(form, tmpString, tmpValue, STRING_TYPE);
+		if(strncmp(tmpValue,"on",strlen("on"))==0)
+			result->phone[i].cmd = ON;
+		else
+			result->phone[i].cmd = OFF;	
 	}
 
     return nParam;   
@@ -1595,32 +1609,104 @@ void fillPage(struct file_data *page, char *pageName)
 			}
 		}
 		fclose(fd);
-/*
-typedef struct{
-	char description[64];
-	char number[32];
-	char sms;
-	char voice;
-	char alertType;
-	char cmd;
-}phone_t;
 
-typedef struct{
-	char plantLabel[64];
-	char hiCloudEn;
-	unsigned int hiCloudPlantId;	
-	char hiCloudRegister[64];
-	char cidEn;
-	char cidRegister1[64];
-	char cidRegister2[64];
-	char pinSim[64];
-	char apnSim[64];
-	char userSim[64];
-	char pwdSim[64];
-	phone_t phone[8];
-}svFormValues_t;
-*/
+		pageRowIdx=0;
+		old_pageRowIdx=0;
+		while(pageRowIdx<page->size)
+		{			
+			while(pageRowIdx<page->size && ((((char*)(page->data))[pageRowIdx])!='\n'))		// search next new line
+				pageRowIdx++;
+			if(pageRowIdx<page->size)														// new line found
+			{				
+				pageRow = malloc(pageRowIdx - old_pageRowIdx + 2);				
+				memcpy(pageRow,page->data+old_pageRowIdx,pageRowIdx - old_pageRowIdx + 1);				
+				memcpy(pageFilled+newPageIndex,pageRow,pageRowIdx - old_pageRowIdx + 1);				
+				pageRow[pageRowIdx - old_pageRowIdx] = '\0';								// add terminator	
 
+				changeRes=0;
+				changeRes |= (~changeValInHtmlPage(pageRow,"plantLabel",sv.plantLabel,pageFilled,&newPageIndex,INPUT))&0x01;
+				if(sv.hiCloudEn == 0)										// hiCloud disabled
+					sprintf(tmpString,"off");
+				else														// hiCloud enabled
+					sprintf(tmpString,"on");				
+				changeRes |= (~changeValInHtmlPage(pageRow,"enableHiCloud",tmpString,pageFilled,&newPageIndex,CHECKBOX))&0x01;							
+				sprintf(tmpString,"%d",sv.hiCloudPlantId);
+				changeRes |= (~changeValInHtmlPage(pageRow,"plantId",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"urlRegister",sv.hiCloudRegister,pageFilled,&newPageIndex,INPUT))&0x01;
+				if(sv.cidEn == 0)											// Contact id disabled
+					sprintf(tmpString,"off");					
+				else														// Contact id enabled
+					sprintf(tmpString,"on");					
+				changeRes |= (~changeValInHtmlPage(pageRow,"enableCid",tmpString,pageFilled,&newPageIndex,CHECKBOX))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"urlCid1",sv.cidRegister1,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"urlCid2",sv.cidRegister2,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"pin",sv.pinSim,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"apn",sv.apnSim,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"user",sv.userSim,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"pwd",sv.pwdSim,pageFilled,&newPageIndex,INPUT))&0x01;
+
+				for(i=0;i<8;i++)
+				{
+					sprintf(tmpPointer,"mexCell%d",i+1);
+					if(sv.phone[i].sms == 0)									// SMS disabled
+						sprintf(tmpString,"off");					
+					else														// SMS enabled
+						sprintf(tmpString,"on");					
+					changeRes |= (~changeValInHtmlPage(pageRow,tmpPointer,tmpString,pageFilled,&newPageIndex,CHECKBOX))&0x01;
+					sprintf(tmpPointer,"voiceCell%d",i+1);
+					if(sv.phone[i].voice == 0)									// call disabled
+						sprintf(tmpString,"off");					
+					else														// call enabled
+						sprintf(tmpString,"on");					
+					changeRes |= (~changeValInHtmlPage(pageRow,tmpPointer,tmpString,pageFilled,&newPageIndex,CHECKBOX))&0x01;
+					sprintf(tmpPointer,"cmdCell%d",i+1);
+					if(sv.phone[i].cmd == 0)									// Command disabled
+						sprintf(tmpString,"off");					
+					else														// Command enabled
+						sprintf(tmpString,"on");					
+					changeRes |= (~changeValInHtmlPage(pageRow,tmpPointer,tmpString,pageFilled,&newPageIndex,CHECKBOX))&0x01;
+					sprintf(tmpString,"descCell%d",i+1);
+					changeRes |= (~changeValInHtmlPage(pageRow,tmpString,sv.phone[i].description,pageFilled,&newPageIndex,INPUT))&0x01;
+					sprintf(tmpString,"cell%d",i+1);
+					changeRes |= (~changeValInHtmlPage(pageRow,tmpString,sv.phone[i].number,pageFilled,&newPageIndex,INPUT))&0x01;
+					sprintf(tmpString,"alarmCell%d",i+1);
+					if(strstr(pageRow,tmpString) != NULL)
+						flagFound[i][0] = 1;
+					else if(flagFound[i][0])
+					{			
+						switch(sv.phone[i].alertType)
+						{
+							case ALARM:
+								sprintf(tmpString,"alarm");
+								break;
+							case DIAGNOSTIC:
+								sprintf(tmpString,"diagnostic");
+								break;
+							case ALARM_DIAGNOSTIC:
+								sprintf(tmpString,"alarm_diagnostic");
+								break;
+						}			
+						if(strstr(pageRow,tmpString) != NULL){
+							flagFound[i][0] = 0;
+							changeRes |= (~changeValInHtmlPage(pageRow,NULL,tmpString,pageFilled,&newPageIndex,SELECT))&0x01;
+						}									
+					}
+				}
+				if(changeRes==0)	
+					newPageIndex += pageRowIdx - old_pageRowIdx + 1;											
+
+				if(pageRow != NULL)	
+					free(pageRow);
+
+				old_pageRowIdx = ++pageRowIdx;
+			}
+		}
+		*(pageFilled+newPageIndex) = '\0';
+		/*if(page->data != NULL)
+			free(page->data);*/
+		page->data = malloc(strlen(pageFilled));
+		memcpy((char *)(page->data),pageFilled,strlen(pageFilled));
+		page->size = strlen(pageFilled);
 	}
 
 	if(pageFilled != NULL)
