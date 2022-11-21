@@ -874,20 +874,20 @@ void changeSV(svFormValues_t * svParam)
 				;		
 			strncpy(newString,tmpString,i+strlen("\"sv\":{"));			// copy first part
 			newString[i+strlen("\"sv\":{")] = '\0';						// add terminator
-			sprintf(newString,"%s\"descr\":%s,",								newString,svParam->plantLabel);
+			sprintf(newString,"%s\"descr\":\"%s\",",								newString,svParam->plantLabel);
 			sprintf(newString,"%s\"hiCloud\":%d,",								newString,svParam->hiCloudEn);
 			sprintf(newString,"%s\"hiCloudId\":%d,",							newString,svParam->hiCloudPlantId);
 			sprintf(newString,"%s\"url\":\"%s\",",								newString,svParam->hiCloudRegister);			
 			sprintf(newString,"%s\"cid\":%d,",									newString,svParam->cidEn);
-			sprintf(newString,"%s\"cidReg1\":%s,",								newString,svParam->cidRegister1);
-			sprintf(newString,"%s\"cidReg2\":%s,",								newString,svParam->cidRegister2);
-			sprintf(newString,"%s\"pin\":%s,",									newString,svParam->pinSim);
-			sprintf(newString,"%s\"apn\":%s,",									newString,svParam->apnSim);
-			sprintf(newString,"%s\"user\":%s,",									newString,svParam->userSim);
+			sprintf(newString,"%s\"cidReg1\":\"%s\",",								newString,svParam->cidRegister1);
+			sprintf(newString,"%s\"cidReg2\":\"%s\",",								newString,svParam->cidRegister2);
+			sprintf(newString,"%s\"pin\":\"%s\",",									newString,svParam->pinSim);
+			sprintf(newString,"%s\"apn\":\"%s\",",									newString,svParam->apnSim);
+			sprintf(newString,"%s\"user\":\"%s\",",									newString,svParam->userSim);
 			sprintf(newString,"%s\"pwd\":\"%s\",\"phone\":[",					newString,svParam->pwdSim);
 			for(j=0;j<8;j++)
 			{
-				sprintf(newString,"%s{\"idx\":%d\",",						newString,j);	
+				sprintf(newString,"%s{\"idx\":%d,",							newString,j);	
 				sprintf(newString,"%s\"sms\":%d,",							newString,svParam->phone[j].sms);	
 				sprintf(newString,"%s\"voce\":%d,",							newString,svParam->phone[j].voice);	
 				sprintf(newString,"%s\"tipo\":%d,",							newString,svParam->phone[j].alertType);
@@ -909,6 +909,35 @@ void changeSV(svFormValues_t * svParam)
 	fclose(fd);
 	fclose(fd_new);
 	system("mv webserver.sav.new webserver.sav");
+
+	/* change isi.conf */
+	fd = fopen("isi.conf","r");
+	fd_new = fopen("isi.conf.new","w+");
+	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
+	{
+		if(strstr(tmpString,"Protocol=MODEM")!=NULL)						// change modem configuration
+		{
+			fprintf(fd,"PIN=%s",svParam->pinSim);
+			fprintf(fd,"APN=%s",svParam->apnSim);
+			fprintf(fd,"User=%s",svParam->userSim);
+			fprintf(fd,"Password=%s",svParam->pwdSim);
+			i=0;
+			for(j=0;j<8;j++)
+			{
+				if(svParam->phone[j].cmd == 1)
+				{
+					fprintf(fd_new,"PhoneNum%02d=%s",i,svParam->phone[j].number);
+					i++;
+				}
+			}
+		}
+		else
+			fprintf(fd_new,tmpString);		
+	}
+	fclose(fd);
+	fclose(fd_new);
+	system("mv isi.conf.new isi.conf");
+	system("killall -9 isi");
 }
 
 int changeCredential(credentialFormValues_t * credentialParam)
@@ -967,7 +996,7 @@ void changeOut(outFormValues_t * outParam)
 			newString[i+strlen("\"out\":[")] = '\0';						// add terminator
 			for(j=0;j<5;j++)
 			{
-				sprintf(newString,"%s{\"idx\":%d\",",				newString,j);	
+				sprintf(newString,"%s{\"idx\":%d,",					newString,j);	
 				sprintf(newString,"%s\"cond\":%d,",					newString,outParam->out[j].condition);	
 				sprintf(newString,"%s\"na_nc\":%d,",				newString,outParam->out[j].normalState);												
 				sprintf(newString,"%s\"durata\":%d,",				newString,outParam->out[j].duration);	
