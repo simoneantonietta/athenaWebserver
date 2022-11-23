@@ -113,8 +113,10 @@ typedef struct{
 	unsigned int hiCloudPlantId;	
 	char hiCloudRegister[64];
 	char cidEn;
+	char cidId;
 	char cidRegister1[64];
 	char cidRegister2[64];
+	char audioFile[64];
 	char pinSim[64];
 	char apnSim[64];
 	char userSim[64];
@@ -267,7 +269,7 @@ int searchValIntoForm(char * form, char * param, char * result, unsigned char va
 		for(i=0;(strValue[i+strlen(param)]!='&') && (i<valueLen);i++)
 			tmpValue[i] = strValue[i+strlen(param)];
 		tmpValue[i] = '\0';				
-		if(valType == 0)						// is a string
+		if(valType == STRING_TYPE)						// is a string
 		{						
 			strncpy(result,tmpValue,strlen(tmpValue));		
 			result[strlen(tmpValue)] = '\0';			
@@ -278,6 +280,8 @@ int searchValIntoForm(char * form, char * param, char * result, unsigned char va
 			return atoi(tmpValue);
 		}
 	}
+	else if(valType == STRING_TYPE)
+		result[0] = '\0';				
 
 	return -1;									// not found
 }
@@ -521,8 +525,10 @@ int parseSupervisorForm(char* form, svFormValues_t * result)
 		result->cidEn = ON;
 	else
 		result->cidEn = OFF;
+	result->cidId = searchValIntoForm(form, "cidId=", NULL, INT_TYPE);
 	searchValIntoForm(form, "urlCid1=", result->cidRegister1, STRING_TYPE);
 	searchValIntoForm(form, "urlCid2=", result->cidRegister2, STRING_TYPE);
+	searchValIntoForm(form, "audioFile=", result->audioFile, STRING_TYPE);
 	searchValIntoForm(form, "pin=", result->pinSim, STRING_TYPE);
 	searchValIntoForm(form, "apn=", result->apnSim, STRING_TYPE);
 	searchValIntoForm(form, "user=", result->userSim, STRING_TYPE);
@@ -875,16 +881,18 @@ void changeSV(svFormValues_t * svParam)
 			strncpy(newString,tmpString,i+strlen("\"sv\":{"));			// copy first part
 			newString[i+strlen("\"sv\":{")] = '\0';						// add terminator
 			sprintf(newString,"%s\"descr\":\"%s\",",								newString,svParam->plantLabel);
-			sprintf(newString,"%s\"hiCloud\":%d,",								newString,svParam->hiCloudEn);
-			sprintf(newString,"%s\"hiCloudId\":%d,",							newString,svParam->hiCloudPlantId);
-			sprintf(newString,"%s\"url\":\"%s\",",								newString,svParam->hiCloudRegister);			
-			sprintf(newString,"%s\"cid\":%d,",									newString,svParam->cidEn);
-			sprintf(newString,"%s\"cidReg1\":\"%s\",",								newString,svParam->cidRegister1);
-			sprintf(newString,"%s\"cidReg2\":\"%s\",",								newString,svParam->cidRegister2);
+			sprintf(newString,"%s\"hicloudenable\":%d,",							newString,svParam->hiCloudEn);
+			sprintf(newString,"%s\"hicloudid\":%d,",								newString,svParam->hiCloudPlantId);
+			sprintf(newString,"%s\"hicloudurl\":\"%s\",",							newString,svParam->hiCloudRegister);			
+			sprintf(newString,"%s\"cidenable\":%d,",								newString,svParam->cidEn);
+			sprintf(newString,"%s\"cidid\":%d,",									newString,svParam->cidId);
+			sprintf(newString,"%s\"cidurl1\":\"%s\",",								newString,svParam->cidRegister1);
+			sprintf(newString,"%s\"cidurl2\":\"%s\",",								newString,svParam->cidRegister2);
+			sprintf(newString,"%s\"file\":\"%s\",",									newString,svParam->audioFile);
 			sprintf(newString,"%s\"pin\":\"%s\",",									newString,svParam->pinSim);
 			sprintf(newString,"%s\"apn\":\"%s\",",									newString,svParam->apnSim);
 			sprintf(newString,"%s\"user\":\"%s\",",									newString,svParam->userSim);
-			sprintf(newString,"%s\"pwd\":\"%s\",\"phone\":[",					newString,svParam->pwdSim);
+			sprintf(newString,"%s\"pwd\":\"%s\",\"phone\":[",						newString,svParam->pwdSim);
 			for(j=0;j<8;j++)
 			{
 				sprintf(newString,"%s{\"idx\":%d,",							newString,j);	
@@ -892,7 +900,7 @@ void changeSV(svFormValues_t * svParam)
 				sprintf(newString,"%s\"voce\":%d,",							newString,svParam->phone[j].voice);	
 				sprintf(newString,"%s\"tipo\":%d,",							newString,svParam->phone[j].alertType);
 				sprintf(newString,"%s\"num\":\"%s\",",						newString,svParam->phone[j].number);					
-				sprintf(newString,"%s\"cmd\":\"%d\",",						newString,svParam->phone[j].cmd);
+				sprintf(newString,"%s\"cmd\":%d,",							newString,svParam->phone[j].cmd);
 				if(j==7)
 					sprintf(newString,"%s\"descr\":\"%s\"}",					newString,svParam->phone[j].description);									
 				else
@@ -1605,14 +1613,16 @@ void fillPage(struct file_data *page, char *pageName)
 		{
 			tmpPointer = strstr(tmpString,"\"sv\":{");
 			if(tmpPointer!=NULL)
-			{
+			{				
 				extractValFromJson(tmpPointer, "descr", sv.plantLabel, STRING_TYPE);				
-				sv.hiCloudEn = extractValFromJson(tmpPointer, "hiCloud", NULL, INT_TYPE);
-				sv.hiCloudPlantId = extractValFromJson(tmpPointer, "hiCloudId", NULL, INT_TYPE);
-				extractValFromJson(tmpPointer, "url", sv.hiCloudRegister, STRING_TYPE);
-				sv.cidEn = extractValFromJson(tmpPointer, "cid", NULL, INT_TYPE);
-				extractValFromJson(tmpPointer, "cidReg1", sv.cidRegister1, STRING_TYPE);
-				extractValFromJson(tmpPointer, "cidReg2", sv.cidRegister2, STRING_TYPE);
+				sv.hiCloudEn = extractValFromJson(tmpPointer, "hicloudenable", NULL, INT_TYPE);
+				sv.hiCloudPlantId = extractValFromJson(tmpPointer, "hicloudid", NULL, INT_TYPE);
+				extractValFromJson(tmpPointer, "hicloudurl", sv.hiCloudRegister, STRING_TYPE);
+				sv.cidEn = extractValFromJson(tmpPointer, "cidenable", NULL, INT_TYPE);
+				sv.cidId = extractValFromJson(tmpPointer, "cidid", NULL, INT_TYPE);				
+				extractValFromJson(tmpPointer, "cidurl1", sv.cidRegister1, STRING_TYPE);
+				extractValFromJson(tmpPointer, "cidurl2", sv.cidRegister2, STRING_TYPE);
+				extractValFromJson(tmpPointer, "file", sv.audioFile, STRING_TYPE);
 				extractValFromJson(tmpPointer, "pin", sv.pinSim, STRING_TYPE);
 				extractValFromJson(tmpPointer, "apn", sv.apnSim, STRING_TYPE);
 				extractValFromJson(tmpPointer, "user", sv.userSim, STRING_TYPE);
@@ -1667,8 +1677,11 @@ void fillPage(struct file_data *page, char *pageName)
 				else														// Contact id enabled
 					sprintf(tmpString,"on");					
 				changeRes |= (~changeValInHtmlPage(pageRow,"enableCid",tmpString,pageFilled,&newPageIndex,CHECKBOX))&0x01;
+				sprintf(tmpString,"%d",sv.cidId);
+				changeRes |= (~changeValInHtmlPage(pageRow,"cidId",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"urlCid1",sv.cidRegister1,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"urlCid2",sv.cidRegister2,pageFilled,&newPageIndex,INPUT))&0x01;
+				changeRes |= (~changeValInHtmlPage(pageRow,"audioFile",sv.audioFile,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"pin",sv.pinSim,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"apn",sv.apnSim,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"user",sv.userSim,pageFilled,&newPageIndex,INPUT))&0x01;
