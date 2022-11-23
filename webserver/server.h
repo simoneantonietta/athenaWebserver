@@ -511,12 +511,10 @@ int parseSupervisorForm(char* form, svFormValues_t * result)
 	searchValIntoForm(form, "plantLabel=", result->plantLabel, STRING_TYPE);
 	sprintf(tmpString,"enableHiCloud=");
 	searchValIntoForm(form, tmpString, tmpValue, STRING_TYPE);
-	printf("Il valore di hiCloudEn sarà:%s\n",tmpValue);
 	if(strncmp(tmpValue,"on",strlen("on"))==0)
 		result->hiCloudEn = ON;
 	else
 		result->hiCloudEn = OFF;
-	printf("hiCloudEn:%d\n",result->hiCloudEn);
 	result->hiCloudPlantId = searchValIntoForm(form, "plantId=", NULL, INT_TYPE);
 	searchValIntoForm(form, "urlRegister=", result->hiCloudRegister, STRING_TYPE);
 	sprintf(tmpString,"enableCid=");
@@ -728,79 +726,90 @@ void changeIP(ipFormValues_t * networkParam)
 
 void changeIsiConf(isiFormValues_t * isiParam)
 {
-	char tmpString[4096], newString[4096], isiconf[1024];
-	unsigned char centralModel=0;
+	char tmpString[4096], newString[4096];
+	unsigned char centralModel=0, taskFound=0;
 	unsigned int i,j;
 	FILE *fd, *fd_new;
-
-	fd = fopen("std_isi.conf","r");
-
-	isiconf[0] = '\0';											// to be sure that consecutive calls use an empty string on strcat
-
-	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)		// load standard isi.conf 
-		strcat(isiconf,tmpString);
-	fclose(fd);
+	struct stat buffer;	
 
 	/* Update isi.conf */
-	//fd = fopen("/isi/isi.conf","w+");
-	fd = fopen("/home/utente/isi.conf","w+");
-	fprintf(fd,isiconf);
-
-	if(strcmp(isiParam->centralType,"local")==0)				
+	fd_new = fopen("isi.conf.new","w+");	
+	if(stat("/isi/isi.conf",&buffer)==0)						// there is an isi.conf file
 	{
-		sprintf(tmpString,"Balance=%d\n\n",isiParam->centralParam.inputBalance);		
-		fprintf(fd,tmpString);
+		fd = fopen("/isi/isi.conf","r");
+		while(fgets(tmpString,sizeof(tmpString),fd) != NULL && taskFound == 0)		// load standard isi.conf 
+		{						
+			fprintf(fd_new,tmpString);	
+			if(strstr(tmpString,"[7]")!=NULL)
+				taskFound = 1;							
+		}
 	}
 	else
 	{
-		sprintf(tmpString,"\n# Centrale %s\n[2]\n",isiParam->centralType);		
-		fprintf(fd,tmpString);
-
-		if((strcmp(isiParam->centralType,"notifier")==0) || (strcmp(isiParam->centralType,"honeywell")==0))
-		{			
-			if(strcmp(isiParam->centralParam.connection,"lan")==0)
-			{
-				fprintf(fd,"Protocol=MODBUS-NOTIFIER\nId=%d\nAddress=%d.%d.%d.%d\nPort=%d\n", 	isiParam->centralParam.address,
-																					  			isiParam->centralParam.ip.addr1, isiParam->centralParam.ip.addr2, isiParam->centralParam.ip.addr3, isiParam->centralParam.ip.addr4, 
-																					  			isiParam->centralParam.networkPort);				
-			}
-			else if(strcmp(isiParam->centralParam.connection,"com")==0)
-			{
-				fprintf(fd,"Protocol=CEI\nId=%d\nPort=/dev/ttyS%d\nBaud=%d\nPolling=%d\n", 	isiParam->centralParam.address,																			  
-																			   				isiParam->centralParam.serialPort,
-																			   				isiParam->centralParam.baudrate,
-																			   				isiParam->centralParam.polling);	
-			}
-		}
-		else if(strcmp(isiParam->centralType,"tecnofire")==0)
-		{
-			if(strcmp(isiParam->centralModel,"TFA1-298")==0)
-				centralModel = 1;
-			else if(strcmp(isiParam->centralModel,"TFA1-596")==0)
-				centralModel = 2;
-			else if(strcmp(isiParam->centralModel,"TFA1-1192")==0)
-				centralModel = 3;
-			fprintf(fd,"Protocol=TECNOOUT\nType=%d\nCode=%s\nAddr=%d.%d.%d.%d:%d\nPassphrase=%s\n", centralModel,
-																									isiParam->centralParam.code,
-																						  			isiParam->centralParam.ip.addr1, isiParam->centralParam.ip.addr2, isiParam->centralParam.ip.addr3, isiParam->centralParam.ip.addr4, isiParam->centralParam.networkPort,
-																						  			isiParam->centralParam.passphrase);
-		}
-		else if(strcmp(isiParam->centralType,"def")==0)
-		{
-			fprintf(fd,"Protocol=MODBUS-DEF\nImp=%d\nId=%d\nPort=/dev/ttyS%d\nBaud=%d\n", isiParam->centralParam.plant,
-																						  isiParam->centralParam.address,
-																						  isiParam->centralParam.serialPort,
-																						  isiParam->centralParam.baudrate);
-		}
-		else if(strcmp(isiParam->centralType,"detfire")==0)
-		{
-			fprintf(fd,"Protocol=MAY2\nId=%s\nPort=/dev/ttyS%d\nBaud=%d\n", isiParam->centralParam.id,
-																			isiParam->centralParam.serialPort,
-																			isiParam->centralParam.baudrate);
-		}
+		fd = fopen("std_isi.conf","r");
+		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)		// load standard isi.conf 
+			fprintf(fd_new,tmpString);
 	}
 
+	if(taskFound==1)
+	{
+		fprintf(fd_new,"Protocol=MMASTER\nId=0\n");
+		if(strcmp(isiParam->centralType,"local")==0)								
+			fprintf(fd_new,"Balance=%d\n\n",isiParam->centralParam.inputBalance);			
+		else
+			fprintf(fd_new,"\n# Centrale antincendio\n[2]\n");			
+	}
+	else
+		fprintf(fd_new,"\n# Centrale antincendio\n[2]\n");				
+
+	if((strcmp(isiParam->centralType,"notifier")==0) || (strcmp(isiParam->centralType,"honeywell")==0))
+	{			
+		if(strcmp(isiParam->centralParam.connection,"lan")==0)
+		{
+			fprintf(fd_new,"Protocol=MODBUS-NOTIFIER\nId=%d\nAddress=%d.%d.%d.%d\nPort=%d\n", 	isiParam->centralParam.address,
+																				  			isiParam->centralParam.ip.addr1, isiParam->centralParam.ip.addr2, isiParam->centralParam.ip.addr3, isiParam->centralParam.ip.addr4, 
+																				  			isiParam->centralParam.networkPort);				
+		}
+		else if(strcmp(isiParam->centralParam.connection,"com")==0)
+		{
+			fprintf(fd_new,"Protocol=CEI\nId=%d\nPort=/dev/ttyS%d\nBaud=%d\nPolling=%d\n", 	isiParam->centralParam.address,																			  
+																		   				isiParam->centralParam.serialPort,
+																		   				isiParam->centralParam.baudrate,
+																		   				isiParam->centralParam.polling);	
+		}
+	}
+	else if(strcmp(isiParam->centralType,"tecnofire")==0)
+	{
+		if(strcmp(isiParam->centralModel,"TFA1-298")==0)
+			centralModel = 1;
+		else if(strcmp(isiParam->centralModel,"TFA1-596")==0)
+			centralModel = 2;
+		else if(strcmp(isiParam->centralModel,"TFA1-1192")==0)
+			centralModel = 3;
+		fprintf(fd_new,"Protocol=TECNOOUT\nType=%d\nCode=%s\nAddr=%d.%d.%d.%d:%d\nPassphrase=%s\n", centralModel,
+																								isiParam->centralParam.code,
+																					  			isiParam->centralParam.ip.addr1, isiParam->centralParam.ip.addr2, isiParam->centralParam.ip.addr3, isiParam->centralParam.ip.addr4, isiParam->centralParam.networkPort,
+																					  			isiParam->centralParam.passphrase);
+	}
+	else if(strcmp(isiParam->centralType,"def")==0)
+	{
+		fprintf(fd_new,"Protocol=MODBUS-DEF\nImp=%d\nId=%d\nPort=/dev/ttyS%d\nBaud=%d\n", isiParam->centralParam.plant,
+																					  isiParam->centralParam.address,
+																					  isiParam->centralParam.serialPort,
+																					  isiParam->centralParam.baudrate);
+	}
+	else if(strcmp(isiParam->centralType,"detfire")==0)
+	{
+		fprintf(fd_new,"Protocol=MAY2\nId=%s\nPort=/dev/ttyS%d\nBaud=%d\n", isiParam->centralParam.id,
+																		isiParam->centralParam.serialPort,
+																		isiParam->centralParam.baudrate);
+	}	
+
 	fclose(fd);
+	fclose(fd_new);
+
+	system("mv isi.conf.new /isi/isi.conf");
+	system("killall -9 isi");
 
 	/* Save values into file */
 	fd = fopen("webserver.sav","r");
@@ -919,22 +928,26 @@ void changeSV(svFormValues_t * svParam)
 	system("mv webserver.sav.new webserver.sav");
 
 	/* change isi.conf */
-	fd = fopen("isi.conf","r");
+	fd = fopen("/isi/isi.conf","r");
 	fd_new = fopen("isi.conf.new","w+");
+	printf("Creato isi conf new\n");
 	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 	{
 		if(strstr(tmpString,"Protocol=MODEM")!=NULL)						// change modem configuration
 		{
-			fprintf(fd,"PIN=%s",svParam->pinSim);
-			fprintf(fd,"APN=%s",svParam->apnSim);
-			fprintf(fd,"User=%s",svParam->userSim);
-			fprintf(fd,"Password=%s",svParam->pwdSim);
+			printf("Trovato protocollo modem\n");			
+			fprintf(fd_new,"File=%s\n",svParam->audioFile);
+			printf("File:%s\n",svParam->audioFile);
+			fprintf(fd_new,"PIN=%s\n",svParam->pinSim);
+			fprintf(fd_new,"APN=%s\n",svParam->apnSim);
+			fprintf(fd_new,"User=%s\n",svParam->userSim);
+			fprintf(fd_new,"Password=%s\n",svParam->pwdSim);
 			i=0;
 			for(j=0;j<8;j++)
 			{
 				if(svParam->phone[j].cmd == 1)
 				{
-					fprintf(fd_new,"PhoneNum%02d=%s",i,svParam->phone[j].number);
+					fprintf(fd_new,"PhoneNum%02d=%s\n",i,svParam->phone[j].number);
 					i++;
 				}
 			}
@@ -944,7 +957,7 @@ void changeSV(svFormValues_t * svParam)
 	}
 	fclose(fd);
 	fclose(fd_new);
-	system("mv isi.conf.new isi.conf");
+	system("mv isi.conf.new /isi/isi.conf");
 	system("killall -9 isi");
 }
 
