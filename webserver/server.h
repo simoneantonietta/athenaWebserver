@@ -49,6 +49,9 @@
 enum {COND_REMOTE=0, COND_ALARM, COND_SABOT, COND_FAIL, COND_EXCL, COND_BYPASS,
       COND_LOC_TAMPER, COND_LOC_POWERFAIL, COND_LOC_BATTFAIL};
 
+enum {AUDIO_ALLARME = 0, AUDIO_GUASTO, AUDIO_ESCLUSIONE, AUDIO_MANOMISSIONE_CENTRALE, 
+	AUDIO_GUASTO_CENTRALE, AUDIO_SEGNALE_BASSO, AUDIO_MANCA_RETE, AUDIO_BATTERIA_BASSA, AUDIO_SOVRATENSIONE, AUDIO_MAX};
+
 /* Type definition */
 typedef struct{
     int addr1;
@@ -116,7 +119,7 @@ typedef struct{
 	char cidId;
 	char cidRegister1[64];
 	char cidRegister2[64];
-	char audioFile[64];
+	char audioFile[AUDIO_MAX][64];
 	char pinSim[64];
 	char apnSim[64];
 	char userSim[64];
@@ -526,7 +529,12 @@ int parseSupervisorForm(char* form, svFormValues_t * result)
 	result->cidId = searchValIntoForm(form, "cidId=", NULL, INT_TYPE);
 	searchValIntoForm(form, "urlCid1=", result->cidRegister1, STRING_TYPE);
 	searchValIntoForm(form, "urlCid2=", result->cidRegister2, STRING_TYPE);
-	searchValIntoForm(form, "audioFile=", result->audioFile, STRING_TYPE);
+	searchValIntoForm(form, "alarmFile=", result->audioFile[AUDIO_ALLARME], STRING_TYPE);
+	searchValIntoForm(form, "koFile=", result->audioFile[AUDIO_GUASTO], STRING_TYPE);
+	searchValIntoForm(form, "exclusionFile=", result->audioFile[AUDIO_ESCLUSIONE], STRING_TYPE);
+	searchValIntoForm(form, "tamperFile=", result->audioFile[AUDIO_MANOMISSIONE_CENTRALE], STRING_TYPE);
+	searchValIntoForm(form, "koCentralFile=", result->audioFile[AUDIO_GUASTO_CENTRALE], STRING_TYPE);	
+	searchValIntoForm(form, "lowSignalFile=", result->audioFile[AUDIO_SEGNALE_BASSO], STRING_TYPE);
 	searchValIntoForm(form, "pin=", result->pinSim, STRING_TYPE);
 	searchValIntoForm(form, "apn=", result->apnSim, STRING_TYPE);
 	searchValIntoForm(form, "user=", result->userSim, STRING_TYPE);
@@ -733,7 +741,7 @@ void changeIsiConf(isiFormValues_t * isiParam)
 	struct stat buffer;	
 
 	/* Update isi.conf */
-	fd_new = fopen("isi.conf.new","w+");	
+	fd_new = fopen("/home/utente/isi.conf.new","w+");	
 	if(stat("/isi/isi.conf",&buffer)==0)						// there is an isi.conf file
 	{
 		fd = fopen("/isi/isi.conf","r");
@@ -746,7 +754,7 @@ void changeIsiConf(isiFormValues_t * isiParam)
 	}
 	else
 	{
-		fd = fopen("std_isi.conf","r");
+		fd = fopen("/home/utente/std_isi.conf","r");
 		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)		// load standard isi.conf 
 			fprintf(fd_new,tmpString);
 	}
@@ -812,8 +820,8 @@ void changeIsiConf(isiFormValues_t * isiParam)
 	system("killall -9 isi");
 
 	/* Save values into file */
-	fd = fopen("webserver.sav","r");
-	fd_new = fopen("webserver.sav.new","w+");
+	fd = fopen("/home/utente/webserver.sav","r");
+	fd_new = fopen("/home/utente/webserver.sav.new","w+");
 	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 	{
 		if(strstr(tmpString,"\"central\":{")!=NULL)
@@ -879,8 +887,8 @@ void changeSV(svFormValues_t * svParam)
 	FILE *fd, *fd_new;
 
 	/* Save values into file */
-	fd = fopen("webserver.sav","r");
-	fd_new = fopen("webserver.sav.new","w+");
+	fd = fopen("/home/utente/webserver.sav","r");
+	fd_new = fopen("/home/utente/webserver.sav.new","w+");
 	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 	{
 		if(strstr(tmpString,"\"sv\":{")!=NULL)
@@ -897,11 +905,17 @@ void changeSV(svFormValues_t * svParam)
 			sprintf(newString,"%s\"cidid\":%d,",									newString,svParam->cidId);
 			sprintf(newString,"%s\"cidurl1\":\"%s\",",								newString,svParam->cidRegister1);
 			sprintf(newString,"%s\"cidurl2\":\"%s\",",								newString,svParam->cidRegister2);
-			sprintf(newString,"%s\"file\":\"%s\",",									newString,svParam->audioFile);
 			sprintf(newString,"%s\"pin\":\"%s\",",									newString,svParam->pinSim);
 			sprintf(newString,"%s\"apn\":\"%s\",",									newString,svParam->apnSim);
 			sprintf(newString,"%s\"user\":\"%s\",",									newString,svParam->userSim);
-			sprintf(newString,"%s\"pwd\":\"%s\",\"phone\":[",						newString,svParam->pwdSim);
+			sprintf(newString,"%s\"pwd\":\"%s\",\"audiofile\":[",					newString,svParam->pwdSim);
+			for(j=0;j<AUDIO_MAX;j++)
+			{				
+				if(j==AUDIO_MAX-1)
+					sprintf(newString,"%s{\"tipo\":%d,\"file\":\"%s\"}],\"phone\":[",		newString,j,svParam->audioFile[j]);	
+				else
+					sprintf(newString,"%s{\"tipo\":%d,\"file\":\"%s\"},",					newString,j,svParam->audioFile[j]);	
+			}			
 			for(j=0;j<8;j++)
 			{
 				sprintf(newString,"%s{\"idx\":%d,",							newString,j);	
@@ -925,7 +939,7 @@ void changeSV(svFormValues_t * svParam)
 	}
 	fclose(fd);
 	fclose(fd_new);
-	system("mv webserver.sav.new webserver.sav");
+	system("mv /home/utente/webserver.sav.new /home/utente/webserver.sav");
 
 	/* change isi.conf */
 	fd = fopen("/isi/isi.conf","r");
@@ -934,10 +948,7 @@ void changeSV(svFormValues_t * svParam)
 	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 	{
 		if(strstr(tmpString,"Protocol=MODEM")!=NULL)						// change modem configuration
-		{
-			printf("Trovato protocollo modem\n");			
-			fprintf(fd_new,"File=%s\n",svParam->audioFile);
-			printf("File:%s\n",svParam->audioFile);
+		{					
 			fprintf(fd_new,"PIN=%s\n",svParam->pinSim);
 			fprintf(fd_new,"APN=%s\n",svParam->apnSim);
 			fprintf(fd_new,"User=%s\n",svParam->userSim);
@@ -965,7 +976,7 @@ int changeCredential(credentialFormValues_t * credentialParam)
 {
 	unsigned int i;
 	int returnVal = 0;
-	FILE *fd = fopen("serverroot/pwd","r");
+	FILE *fd = fopen("/home/utente/serverroot/pwd","r");
 	char tmpString[256], username[64], password[64], index;
 	
 	fgets(tmpString,sizeof(tmpString),fd);
@@ -989,7 +1000,7 @@ int changeCredential(credentialFormValues_t * credentialParam)
 		(strcmp(credentialParam->newPassword,credentialParam->newPassword2)==0))
 	{		
 		printf("Sto cambiando credenziali\n");
-		fd = fopen("serverroot/pwd","w");
+		fd = fopen("/home/utente/serverroot/pwd","w");
 		fprintf(fd,"%s:%s\n", username, credentialParam->newPassword);
 		fclose(fd);
 		returnVal = 1;
@@ -1005,8 +1016,8 @@ void changeOut(outFormValues_t * outParam)
 	FILE *fd, *fd_new;
 
 	/* Save values into file */
-	fd = fopen("webserver.sav","r");
-	fd_new = fopen("webserver.sav.new","w+");
+	fd = fopen("/home/utente/webserver.sav","r");
+	fd_new = fopen("/home/utente/webserver.sav.new","w+");
 	while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 	{
 		if(strstr(tmpString,"\"out\":[")!=NULL)
@@ -1137,7 +1148,7 @@ void fillPage(struct file_data *page, char *pageName)
 
 	if(strncmp(pageName,"/parametri_di_centrale.html",strlen("parametri_di_centrale"))==0)
 	{
-		fd = fopen("webserver.sav","r");		
+		fd = fopen("/home/utente/webserver.sav","r");		
 		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 		{
 			if(strstr(tmpString,"\"central\":{")!=NULL)
@@ -1454,7 +1465,7 @@ void fillPage(struct file_data *page, char *pageName)
 																					  networkParams[9], networkParams[10], networkParams[11], networkParams[12]);
 		Log("/tmp/webserver.log",tmpString);
 
-		fd = fopen("webserver.sav","r");		
+		fd = fopen("/home/utente/webserver.sav","r");		
 		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 		{
 			if(strstr(tmpString,"\"central\":{")!=NULL)
@@ -1621,7 +1632,7 @@ void fillPage(struct file_data *page, char *pageName)
 	}
 	else if(strncmp(pageName,"/parametri_di_supervisione.html",strlen("parametri_di_supervisione"))==0)
 	{
-		fd = fopen("webserver.sav","r");		
+		fd = fopen("/home/utente/webserver.sav","r");		
 		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)
 		{
 			tmpPointer = strstr(tmpString,"\"sv\":{");
@@ -1635,11 +1646,23 @@ void fillPage(struct file_data *page, char *pageName)
 				sv.cidId = extractValFromJson(tmpPointer, "cidid", NULL, INT_TYPE);				
 				extractValFromJson(tmpPointer, "cidurl1", sv.cidRegister1, STRING_TYPE);
 				extractValFromJson(tmpPointer, "cidurl2", sv.cidRegister2, STRING_TYPE);
-				extractValFromJson(tmpPointer, "file", sv.audioFile, STRING_TYPE);
 				extractValFromJson(tmpPointer, "pin", sv.pinSim, STRING_TYPE);
 				extractValFromJson(tmpPointer, "apn", sv.apnSim, STRING_TYPE);
 				extractValFromJson(tmpPointer, "user", sv.userSim, STRING_TYPE);
 				extractValFromJson(tmpPointer, "pwd", sv.pwdSim, STRING_TYPE);				
+				for(i=0;i<AUDIO_MAX;i++)
+				{					
+					tmpPointer = strstr(tmpString,"\"audiofile\":[");
+					if(tmpPointer != NULL)							// search output field
+					{						
+						sprintf(valStr,"\"tipo\":%d",i);
+						tmpPointer = strstr(tmpPointer,valStr);
+						if(tmpPointer!=NULL)
+						{										
+							extractValFromJson(tmpPointer, "file", sv.audioFile[i], STRING_TYPE);							
+						}
+					}
+				}
 				for(i=0;i<8;i++)
 				{					
 					tmpPointer = strstr(tmpString,"\"phone\":[");
@@ -1694,11 +1717,35 @@ void fillPage(struct file_data *page, char *pageName)
 				changeRes |= (~changeValInHtmlPage(pageRow,"cidId",tmpString,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"urlCid1",sv.cidRegister1,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"urlCid2",sv.cidRegister2,pageFilled,&newPageIndex,INPUT))&0x01;
-				changeRes |= (~changeValInHtmlPage(pageRow,"audioFile",sv.audioFile,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"pin",sv.pinSim,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"apn",sv.apnSim,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"user",sv.userSim,pageFilled,&newPageIndex,INPUT))&0x01;
 				changeRes |= (~changeValInHtmlPage(pageRow,"pwd",sv.pwdSim,pageFilled,&newPageIndex,INPUT))&0x01;
+				
+				for(i=0;i<AUDIO_MAX;i++)
+				{
+					switch(i)
+					{
+						case AUDIO_ALLARME:
+							changeRes |= (~changeValInHtmlPage(pageRow,"alarmFile",sv.audioFile[i],pageFilled,&newPageIndex,INPUT))&0x01;
+							break;
+						case AUDIO_GUASTO:
+							changeRes |= (~changeValInHtmlPage(pageRow,"koFile",sv.audioFile[i],pageFilled,&newPageIndex,INPUT))&0x01;
+							break;
+						case AUDIO_ESCLUSIONE:
+							changeRes |= (~changeValInHtmlPage(pageRow,"exclusionFile",sv.audioFile[i],pageFilled,&newPageIndex,INPUT))&0x01;
+							break;
+						case AUDIO_MANOMISSIONE_CENTRALE:
+							changeRes |= (~changeValInHtmlPage(pageRow,"tamperFile",sv.audioFile[i],pageFilled,&newPageIndex,INPUT))&0x01;
+							break;
+						case AUDIO_GUASTO_CENTRALE:
+							changeRes |= (~changeValInHtmlPage(pageRow,"koCentralFile",sv.audioFile[i],pageFilled,&newPageIndex,INPUT))&0x01;
+							break;
+						case AUDIO_SEGNALE_BASSO:
+							changeRes |= (~changeValInHtmlPage(pageRow,"lowSignalFile",sv.audioFile[i],pageFilled,&newPageIndex,INPUT))&0x01;
+							break;
+					}
+				}				
 
 				for(i=0;i<8;i++)
 				{
