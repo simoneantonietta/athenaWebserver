@@ -276,64 +276,71 @@ void get(int socketDescriptor, char * request, unsigned int request_buffer_size,
     sprintf(filepath, "%s%s", SERVER_ROOT, requestResource);
     filedata = file_load(filepath);
 
-    if (filedata == NULL) {
-        fprintf(stderr, "cannot find system %s file\n",requestResource);
-        sprintf(filepath, "%s/index.html", SERVER_ROOT);
-        filedata = file_load(filepath);                
-    }            
-    else
+    if(!host->isActive)
     {
-        sprintf(logString,"Chiamo fillPage per la risorsa:%s\n", requestResource);
-        Log("/tmp/webserver.log",logString);                
-        fillPage(filedata, requestResource);
-    }
-
-    mime_type = mime_type_get(filepath);            
-
-    if(host->authorized && (host->expirationTime > time(NULL)))
-    {
-        strcpy(logString,"Authorized\n");
-        Log("/tmp/webserver.log",logString);
-        send_response(socketDescriptor, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    	resp_404(socketDescriptor);
     }
     else
     {
-        strcpy(logString,"Unathorized\n");
-        Log("/tmp/webserver.log",logString);
-        tmpString = strstr(request_cpy,"Authorization: ");
+	    if (filedata == NULL) {
+	        fprintf(stderr, "cannot find system %s file\n",requestResource);
+	        sprintf(filepath, "%s/index.html", SERVER_ROOT);
+	        filedata = file_load(filepath);                
+	    }            
+	    else
+	    {
+	        sprintf(logString,"Chiamo fillPage per la risorsa:%s\n", requestResource);
+	        Log("/tmp/webserver.log",logString);                
+	        fillPage(filedata, requestResource);
+	    }
 
-        if(tmpString)
-        {
-            for(idx=0;(tmpString[idx+strlen("Authorization: Basic ")]!='\r') && (idx<sizeof(credentials_b64));idx++)
-            {
-                credentials_b64[idx]=tmpString[idx+strlen("Authorization: Basic ")];                        
-            }                
-            credentials_b64[idx] = '\0';
+	    mime_type = mime_type_get(filepath);            
 
-            b64_decode(credentials_b64, credentials); 
+	    if(host->authorized && (host->expirationTime > time(NULL)))
+	    {
+	        strcpy(logString,"Authorized\n");
+	        Log("/tmp/webserver.log",logString);
+	        send_response(socketDescriptor, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+	    }
+	    else
+	    {
+	        strcpy(logString,"Unathorized\n");
+	        Log("/tmp/webserver.log",logString);
+	        tmpString = strstr(request_cpy,"Authorization: ");
 
-            fDesc = fopen(pwdName,"r");
-            fgets(reference_credential,sizeof(reference_credential),fDesc);
-            fclose(fDesc);
+	        if(tmpString)
+	        {
+	            for(idx=0;(tmpString[idx+strlen("Authorization: Basic ")]!='\r') && (idx<sizeof(credentials_b64));idx++)
+	            {
+	                credentials_b64[idx]=tmpString[idx+strlen("Authorization: Basic ")];                        
+	            }                
+	            credentials_b64[idx] = '\0';
 
-           /* sprintf(logString,"reference_credential:%s\n",reference_credential);
-            Log("/tmp/webserver.log",logString);
-                
-            sprintf(logString,"credentials:%s\n",credentials);
-            Log("/tmp/webserver.log",logString);*/
+	            b64_decode(credentials_b64, credentials); 
 
-            if(strncmp(credentials,reference_credential,strlen(reference_credential)-1)==0)         // compare strlen(reference_credential)-1 to exclude '\n'
-            {
-                host->authorized = 1;
-                host->expirationTime = time(NULL)+EXPIRATION_TIME*60;
-                send_response(socketDescriptor, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-            }
-            else
-                send_response(socketDescriptor, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, 0);
-        }
-        else
-            send_response(socketDescriptor, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, 0);
-    }
+	            fDesc = fopen(pwdName,"r");
+	            fgets(reference_credential,sizeof(reference_credential),fDesc);
+	            fclose(fDesc);
+
+	           /* sprintf(logString,"reference_credential:%s\n",reference_credential);
+	            Log("/tmp/webserver.log",logString);
+	                
+	            sprintf(logString,"credentials:%s\n",credentials);
+	            Log("/tmp/webserver.log",logString);*/
+
+	            if(strncmp(credentials,reference_credential,strlen(reference_credential)-1)==0)         // compare strlen(reference_credential)-1 to exclude '\n'
+	            {
+	                host->authorized = 1;
+	                host->expirationTime = time(NULL)+EXPIRATION_TIME*60;
+	                send_response(socketDescriptor, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+	            }
+	            else
+	                send_response(socketDescriptor, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, 0);
+	        }
+	        else
+	            send_response(socketDescriptor, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, 0);
+	    }
+	}
 
     file_free(filedata);    
     free(request_cpy);
@@ -358,83 +365,89 @@ void post(int socketDescriptor, char * request, unsigned int request_buffer_size
     strtok(request," ");
     requestResource = strtok(NULL," ");
 
-    if(strstr(request_cpy,"parametri_di_sistema.html") != NULL)
-    {
-        int result;
-        if(strstr(request_cpy,"page=network"))
-        {
-            result= parseSystemForm(request_cpy, &ipFormVal);
-            Log("/tmp/webserver.log","NETWORK POST parsified\n");               
-            changeIP(&ipFormVal);
-            Log("/tmp/webserver.log","NETWORK changed\n");                                   
-        }
-        else if(strstr(request_cpy,"page=output"))
-        {
-            result= parseOutputForm(request_cpy, &outFormVal);
-            Log("/tmp/webserver.log","OUTPUT POST parsified\n");               
-            changeOut(&outFormVal);
-            Log("/tmp/webserver.log","OUTPUT changed\n");                                   
-        }
-        else if(strstr(request_cpy,"page=credentials"))
-        {
-            result= parseCredentialForm(request_cpy, &credentialFormVal);
-            Log("/tmp/webserver.log","CREDENTIAL POST parsified\n");               
-            changePwd = changeCredential(&credentialFormVal);
-            Log("/tmp/webserver.log","CREDENTIALS changed\n");                               
-        }
+	if(host->isActive)
+	{
+		resp_404(socketDescriptor);
+	}
+	else
+	{
+	    if(strstr(request_cpy,"parametri_di_sistema.html") != NULL)
+	    {
+	        int result;
+	        if(strstr(request_cpy,"page=network"))
+	        {
+	            result= parseSystemForm(request_cpy, &ipFormVal);
+	            Log("/tmp/webserver.log","NETWORK POST parsified\n");               
+	            changeIP(&ipFormVal);
+	            Log("/tmp/webserver.log","NETWORK changed\n");                                   
+	        }
+	        else if(strstr(request_cpy,"page=output"))
+	        {
+	            result= parseOutputForm(request_cpy, &outFormVal);
+	            Log("/tmp/webserver.log","OUTPUT POST parsified\n");               
+	            changeOut(&outFormVal);
+	            Log("/tmp/webserver.log","OUTPUT changed\n");                                   
+	        }
+	        else if(strstr(request_cpy,"page=credentials"))
+	        {
+	            result= parseCredentialForm(request_cpy, &credentialFormVal);
+	            Log("/tmp/webserver.log","CREDENTIAL POST parsified\n");               
+	            changePwd = changeCredential(&credentialFormVal);
+	            Log("/tmp/webserver.log","CREDENTIALS changed\n");                               
+	        }
 
-        if(result)         
-        {
-            sprintf(logString, "Form Values detected:%d\n",result);        
-            Log("/tmp/webserver.log", logString);
-        }
-    }
-    else if(strstr(request_cpy,"parametri_di_centrale.html") != NULL)
-    {
-        int result= parseCentralForm(request_cpy, &isiFormVal);
-        Log("/tmp/webserver.log","POST parsified\n");               
-        changeIsiConf(&isiFormVal);
-        Log("/tmp/webserver.log","isi.conf changed\n");               
-        if(result)         
-        {
-            sprintf(logString, "Form Values detected:%d\n",result);        
-            Log("/tmp/webserver.log", logString);
-        }
-    }
-    else if(strstr(request_cpy,"parametri_di_supervisione.html") != NULL)
-    {
-        int result= parseSupervisorForm(request_cpy, &svFormVal);
-        Log("/tmp/webserver.log","POST parsified\n");               
-        changeSV(&svFormVal);
-        Log("/tmp/webserver.log","supervisor parameters changed\n");               
-        if(result)         
-        {
-            sprintf(logString, "Form Values detected:%d\n",result);        
-            Log("/tmp/webserver.log", logString);
-        }
-    }           
+	        if(result)         
+	        {
+	            sprintf(logString, "Form Values detected:%d\n",result);        
+	            Log("/tmp/webserver.log", logString);
+	        }
+	    }
+	    else if(strstr(request_cpy,"parametri_di_centrale.html") != NULL)
+	    {
+	        int result= parseCentralForm(request_cpy, &isiFormVal);
+	        Log("/tmp/webserver.log","POST parsified\n");               
+	        changeIsiConf(&isiFormVal);
+	        Log("/tmp/webserver.log","isi.conf changed\n");               
+	        if(result)         
+	        {
+	            sprintf(logString, "Form Values detected:%d\n",result);        
+	            Log("/tmp/webserver.log", logString);
+	        }
+	    }
+	    else if(strstr(request_cpy,"parametri_di_supervisione.html") != NULL)
+	    {
+	        int result= parseSupervisorForm(request_cpy, &svFormVal);
+	        Log("/tmp/webserver.log","POST parsified\n");               
+	        changeSV(&svFormVal);
+	        Log("/tmp/webserver.log","supervisor parameters changed\n");               
+	        if(result)         
+	        {
+	            sprintf(logString, "Form Values detected:%d\n",result);        
+	            Log("/tmp/webserver.log", logString);
+	        }
+	    }           
 
-    // Fetch the requested file
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, requestResource);
+	    // Fetch the requested file
+	    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, requestResource);
 
-    filedata = file_load(filepath);
+	    filedata = file_load(filepath);
 
-    if (filedata == NULL) {
-        fprintf(stderr, "cannot find system %s file\n",requestResource);
-        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
-        filedata = file_load(filepath);
-    }
+	    if (filedata == NULL) {
+	        fprintf(stderr, "cannot find system %s file\n",requestResource);
+	        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+	        filedata = file_load(filepath);
+	    }
 
-    mime_type = mime_type_get(filepath);
+	    mime_type = mime_type_get(filepath);
 
-    if(changePwd == 1)
-    {
-        host->authorized = 0;
-        send_response(socketDescriptor, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, 0);
-    }
-    else
-        send_response(socketDescriptor, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
+	    if(changePwd == 1)
+	    {
+	        host->authorized = 0;
+	        send_response(socketDescriptor, "HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic", mime_type, NULL, 0);
+	    }
+	    else
+	        send_response(socketDescriptor, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+	}
     file_free(filedata);
     free(request_cpy);
 }
@@ -627,7 +640,7 @@ int parseSystemForm(char* form, ipFormValues_t * result)
 																		result->ip.addr1,result->ip.addr2,result->ip.addr3,result->ip.addr4,
 																		result->sn.addr1,result->sn.addr2,result->sn.addr3,result->sn.addr4,
 																		result->gw.addr1,result->gw.addr2,result->gw.addr3,result->gw.addr4);
-	printf(logString);
+	printf("%s",logString);
 
     return nParam;   
 }
@@ -1017,7 +1030,7 @@ void changeIsiConf(isiFormValues_t * isiParam)
 		fd = fopen("/isi/isi.conf","r");
 		while(fgets(tmpString,sizeof(tmpString),fd) != NULL && taskFound == 0)		// load standard isi.conf 
 		{						
-			fprintf(fd_new,tmpString);	
+			fprintf(fd_new,"%s",tmpString);	
 			if(strstr(tmpString,"[7]")!=NULL)
 				taskFound = 1;							
 		}
@@ -1026,7 +1039,7 @@ void changeIsiConf(isiFormValues_t * isiParam)
 	{
 		fd = fopen("/home/utente/std_isi.conf","r");
 		while(fgets(tmpString,sizeof(tmpString),fd) != NULL)		// load standard isi.conf 
-			fprintf(fd_new,tmpString);
+			fprintf(fd_new,"%s",tmpString);
 	}
 
 	if(taskFound==1)
@@ -1141,7 +1154,7 @@ void changeIsiConf(isiFormValues_t * isiParam)
 			//printf(tmpString);
 			//Log("/tmp/webserver.log",tmpString);
 		}
-		fprintf(fd_new,newString);
+		fprintf(fd_new,"%s",newString);
 	}
 	fclose(fd);
 	fclose(fd_new);
@@ -1205,7 +1218,7 @@ void changeSV(svFormValues_t * svParam)
 				newString[j] = tmpString[i];
 			newString[j] = '\0';
 		}
-		fprintf(fd_new,newString);
+		fprintf(fd_new,"%s",newString);
 	}
 	fclose(fd);
 	fclose(fd_new);
@@ -1234,7 +1247,7 @@ void changeSV(svFormValues_t * svParam)
 			}
 		}
 		else
-			fprintf(fd_new,tmpString);		
+			fprintf(fd_new,"%s",tmpString);		
 	}
 	fclose(fd);
 	fclose(fd_new);
@@ -1314,7 +1327,7 @@ void changeOut(outFormValues_t * outParam)
 				newString[j] = tmpString[i];
 			newString[j] = '\0';
 		}
-		fprintf(fd_new,newString);
+		fprintf(fd_new,"%s",newString);
 	}
 	fclose(fd);
 	fclose(fd_new);

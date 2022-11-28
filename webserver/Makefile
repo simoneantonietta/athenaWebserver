@@ -1,9 +1,14 @@
 CC=arm-none-linux-gnueabi-gcc -fsigned-char -mfloat-abi=softfp -mfpu=vfp
 CFLAGS=-Wall -Wextra
+CC_SO=arm-none-linux-gnueabi-gcc -fsigned-char -mfloat-abi=softfp -mfpu=vfp -Wall -Wextra -shared -fPIC
 
 OBJS=server.o net.o file.o mime.o cache.o hashtable.o llist.o
+OBJS_SO=server.o net.o file.o mime.o cache.o hashtable.o llist.o
 
-all: server
+all: server html.so
+
+html.so: $(OBJS_SO)
+	$(CC_SO) -o $@ $^
 
 server: $(OBJS)
 	$(CC) -o $@ $^
